@@ -197,9 +197,132 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
   #name-input { font-size:18px; padding:14px 16px; }
   #generate-btn { font-size:18px; padding:14px 44px; }
 }
+/* ──── 认证 UI ──── */
+.auth-bar {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; justify-content:flex-end; align-items:center;
+  padding:10px 20px; gap:12px;
+  background:rgba(10,10,10,0.85); backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.auth-bar .auth-user {
+  color:var(--text-dim); font-size:14px; letter-spacing:1px;
+}
+.auth-bar button {
+  padding:6px 18px; border-radius:4px; font-size:13px;
+  cursor:pointer; transition:all 0.25s; font-family:inherit;
+  background:transparent; letter-spacing:1px;
+}
+.auth-bar .btn-login {
+  border:1px solid var(--ember); color:var(--ember);
+}
+.auth-bar .btn-login:hover { background:rgba(255,94,19,0.1); }
+.auth-bar .btn-logout {
+  border:1px solid var(--text-dim); color:var(--text-dim);
+}
+.auth-bar .btn-logout:hover { border-color:var(--text); color:var(--text); }
+/* 认证弹窗 */
+.auth-modal-overlay {
+  position:fixed; inset:0; z-index:200;
+  background:rgba(0,0,0,0.75); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+.auth-modal-overlay.active { opacity:1; pointer-events:auto; }
+.auth-modal {
+  position:relative;
+  background:var(--bg-panel); border:1px solid rgba(184,148,62,0.2);
+  border-radius:var(--radius); padding:36px 32px; width:90%; max-width:400px;
+  text-align:center; box-shadow:0 0 60px rgba(255,94,19,0.08);
+}
+.auth-modal h3 {
+  font-size:22px; color:var(--text); margin-bottom:6px; letter-spacing:2px;
+}
+.auth-modal .modal-sub {
+  font-size:14px; color:var(--text-dim); margin-bottom:28px;
+}
+.auth-modal input {
+  width:100%; padding:14px 18px; margin-bottom:14px;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+  border-radius:var(--radius); color:var(--text); font-size:16px;
+  outline:none; transition:border-color 0.3s; font-family:inherit;
+}
+.auth-modal input:focus { border-color:var(--ember); }
+.auth-modal .btn-submit {
+  width:100%; padding:14px; margin-top:8px;
+  border:1px solid var(--ember); border-radius:4px;
+  background:rgba(255,94,19,0.1); color:var(--ember);
+  font-size:18px; letter-spacing:3px; cursor:pointer; transition:all 0.3s;
+  font-family:inherit;
+}
+.auth-modal .btn-submit:hover { background:rgba(255,94,19,0.2); }
+.auth-modal .btn-switch {
+  margin-top:18px; background:none; border:none;
+  color:var(--text-dim); font-size:14px; cursor:pointer;
+  letter-spacing:1px; font-family:inherit;
+}
+.auth-modal .btn-switch:hover { color:var(--text); }
+.auth-modal .btn-forgot {
+  margin-top:8px; display:block; width:100%; background:none; border:none;
+  color:var(--ash); font-size:13px; cursor:pointer; letter-spacing:1px;
+  font-family:inherit;
+}
+.auth-modal .btn-forgot:hover { color:var(--blood-light); }
+.auth-modal .btn-close {
+  position:absolute; top:12px; right:16px;
+  background:none; border:none; color:var(--text-dim);
+  font-size:22px; cursor:pointer; font-family:inherit;
+}
+.auth-modal .btn-close:hover { color:var(--text); }
+.auth-error { color:var(--hot); font-size:13px; margin-top:8px; min-height:20px; }
+/* 升级引导 */
+.upgrade-prompt {
+  margin-top:28px; padding:24px 20px;
+  border:1px solid rgba(184,148,62,0.2);
+  border-radius:var(--radius); text-align:center;
+  background:rgba(17,17,17,0.6);
+  animation:fadeInUp 0.8s ease-out;
+}
+.upgrade-prompt .upgrade-icon { font-size:40px; margin-bottom:12px; }
+.upgrade-prompt h4 {
+  font-size:20px; color:var(--gold); margin-bottom:8px; letter-spacing:2px;
+}
+.upgrade-prompt p {
+  font-size:15px; color:var(--text-dim); line-height:1.7; margin-bottom:20px;
+}
+.upgrade-prompt .btn-upgrade {
+  padding:12px 32px; border:1px solid var(--gold); border-radius:4px;
+  background:rgba(184,148,62,0.08); color:var(--gold);
+  font-size:16px; letter-spacing:2px; cursor:pointer; transition:all 0.3s;
+  font-family:inherit;
+}
+.upgrade-prompt .btn-upgrade:hover { background:rgba(184,148,62,0.18); }
+.upgrade-prompt .btn-skip {
+  display:block; margin-top:14px; background:none; border:none;
+  color:var(--text-dim); font-size:13px; cursor:pointer;
+  letter-spacing:1px; font-family:inherit;
+}
+.upgrade-prompt .btn-skip:hover { color:var(--text); }
+/* 赞赏入口 */
+.donate-link {
+  margin-top:20px; font-size:13px; color:var(--text-dim); letter-spacing:1px;
+}
+.donate-link a { color:var(--gold); text-decoration:none; }
+.donate-link a:hover { text-decoration:underline; }
+@media (max-width:600px) {
+  .auth-bar { padding:8px 12px; }
+  .auth-modal { padding:28px 20px; }
+}
 </style>
 </head>
 <body>
+
+<!-- 认证顶栏 -->
+<div class="auth-bar" id="auth-bar">
+  <span class="auth-user" id="auth-user-label">未登录</span>
+  <button class="btn-login" id="btn-show-login">登 录</button>
+  <button class="btn-logout" id="btn-logout" style="display:none;">退 出</button>
+</div>
 
 <div id="app">
     <div class="phase active" id="phase-input">
@@ -237,7 +360,35 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
       <canvas id="share-card-canvas" style="display:none;"></canvas>
       <button id="save-card-btn" style="display:none;">📥 保存分享卡片</button>
       <button id="restart-btn">再 烧 一 个</button>
+      <!-- 升级引导（免费用完后显示） -->
+      <div class="upgrade-prompt" id="upgrade-prompt" style="display:none;">
+        <div class="upgrade-icon">🔐</div>
+        <h4>今日免费次数已用完</h4>
+        <p>登录即可无限体验，<br>全部音效 & 动效永久免费开放</p>
+        <button class="btn-upgrade" id="btn-upgrade-login">登 录 / 注 册</button>
+        <button class="btn-skip" id="btn-skip-upgrade">明天再说</button>
+      </div>
+      <!-- 赞赏入口 -->
+      <p class="donate-link">
+        喜欢这个项目？<a href="https://afdian.com" target="_blank" rel="noopener">去爱发电赞赏支持 →</a>
+      </p>
     </div>
+  </div>
+</div>
+
+<!-- 登录/注册弹窗 -->
+<div class="auth-modal-overlay" id="auth-modal-overlay">
+  <div class="auth-modal">
+    <button class="btn-close" id="btn-close-modal">&times;</button>
+    <h3 id="auth-modal-title">登 录</h3>
+    <p class="modal-sub" id="auth-modal-sub">登录后无限体验全部功能</p>
+    <input type="email" id="auth-email" placeholder="邮箱地址" autocomplete="email">
+    <input type="password" id="auth-password" placeholder="密码（至少6位）" autocomplete="current-password">
+    <input type="password" id="auth-password2" placeholder="再次输入密码确认" autocomplete="off" style="display:none;">
+    <button class="btn-submit" id="btn-auth-submit">登 录</button>
+    <p class="auth-error" id="auth-error"></p>
+    <button class="btn-switch" id="btn-switch-mode">还没有账号？去注册 →</button>
+    <button class="btn-forgot" id="btn-forgot-pwd">忘记密码？</button>
   </div>
 </div>
 
@@ -249,6 +400,204 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
    - 打字机动效 + 火焰从罪名烧起 + 灰烬聚光
    - 分享卡片生成 + 二维码
    ================================================================= */
+
+// ──── Supabase 配置（部署前替换为你的项目信息） ────
+const SUPABASE_URL = 'https://iszgtawutuownoomlffx.supabase.co';
+// const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlzemd0YXd1dHVvd25vb21sZmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MjYwNDAsImV4cCI6MjA5MzIwMjA0MH0.ih9S3oQqQfWIm_2G42zgH0y3kg2ufNydFtKQubPXWUg';
+const SUPABASE_ANON_KEY = 'sb_publishable_5kw245hJm1VHc1AAhbmFtA_CCRxxHwm'
+
+// ──── 用户状态 ────
+let currentUser = null;
+let authMode = 'login'; // 'login' | 'register' | 'reset' | 'newPassword'
+let recoveryToken = null; // 密码重置 token（从邮件链接获取）
+
+// ──── 每日免费判断 ────
+function canFreeUseToday() {
+  const lastUse = localStorage.getItem('last_free_use_date');
+  const today = new Date().toISOString().slice(0, 10);
+  return lastUse !== today;
+}
+
+function markFreeUsed() {
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem('last_free_use_date', today);
+}
+
+function isLoggedIn() {
+  return currentUser !== null;
+}
+
+// ──── 认证模块（纯 fetch REST API，零 CDN 依赖） ────
+function authHeaders(extra = {}) {
+  const h = { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json', ...extra };
+  const token = localStorage.getItem('sb_access_token');
+  if (token) h['Authorization'] = 'Bearer ' + token;
+  return h;
+}
+
+async function restoreSession() {
+  const token = localStorage.getItem('sb_access_token');
+  if (!token) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      // token 过期，尝试用 refresh_token 刷新
+      const refreshed = await refreshToken();
+      if (!refreshed) { clearAuth(); return; }
+      return restoreSession();
+    }
+    const { id, email } = await res.json();
+    currentUser = { id, email };
+    updateAuthUI();
+  } catch (e) { /* 网络不通 */ }
+}
+
+async function refreshToken() {
+  const rt = localStorage.getItem('sb_refresh_token');
+  if (!rt) return false;
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: rt })
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    localStorage.setItem('sb_access_token', data.access_token);
+    localStorage.setItem('sb_refresh_token', data.refresh_token);
+    return true;
+  } catch (e) { return false; }
+}
+
+function clearAuth() {
+  localStorage.removeItem('sb_access_token');
+  localStorage.removeItem('sb_refresh_token');
+  currentUser = null;
+  updateAuthUI();
+}
+
+async function signUp(email, password) {
+  try {
+    // 调 Edge Function 查邮箱是否已在 Supabase 存在
+    const checkRes = await fetch(SUPABASE_URL + '/functions/v1/check-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    if (checkRes.ok) {
+      const { exists } = await checkRes.json();
+      if (exists) return { error: { message: '该邮箱已注册，请直接登录' }, needConfirmation: false };
+    }
+    // Edge Function 异常时静默跳过，不阻塞注册流程
+
+    const res = await fetch(SUPABASE_URL + '/auth/v1/signup', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) return { error: { message: data.msg || data.message || '注册失败' }, needConfirmation: false };
+    if (data.access_token) {
+      localStorage.setItem('sb_access_token', data.access_token);
+      localStorage.setItem('sb_refresh_token', data.refresh_token);
+      currentUser = data.user;
+      updateAuthUI();
+      return { data, error: null, needConfirmation: false };
+    }
+    return { data, error: null, needConfirmation: true };
+  } catch (e) {
+    return { error: { message: '网络错误，请检查网络连接' }, needConfirmation: false };
+  }
+}
+
+async function signIn(email, password) {
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) return { error: { message: data.error_description || data.msg || '登录失败' } };
+    localStorage.setItem('sb_access_token', data.access_token);
+    localStorage.setItem('sb_refresh_token', data.refresh_token);
+    currentUser = data.user;
+    updateAuthUI();
+    return { data, error: null };
+  } catch (e) {
+    return { error: { message: '网络错误，请检查网络连接' } };
+  }
+}
+
+async function signOut() {
+  await fetch(SUPABASE_URL + '/auth/v1/logout', {
+    method: 'POST',
+    headers: authHeaders()
+  }).catch(() => {});
+  clearAuth();
+}
+
+async function sendPasswordReset(email) {
+  const res = await fetch(SUPABASE_URL + '/auth/v1/recover', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ email })
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    return { error: { message: data.msg || '发送失败' } };
+  }
+  return { error: null };
+}
+
+async function updatePasswordWithToken(accessToken, newPassword) {
+  const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+    method: 'PUT',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': 'Bearer ' + accessToken,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ password: newPassword })
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    return { error: { message: data.msg || '重置失败' } };
+  }
+  return { error: null };
+}
+
+function handlePasswordReset() {
+  const hash = window.location.hash.substring(1);
+  if (!hash) return false;
+  const params = new URLSearchParams(hash);
+  const accessToken = params.get('access_token');
+  const type = params.get('type');
+  if (accessToken && type === 'recovery') {
+    recoveryToken = accessToken;
+    window.location.hash = '';
+    showAuthModal('newPassword');
+    return true;
+  }
+  return false;
+}
+
+function updateAuthUI() {
+  const label = $('#auth-user-label');
+  const btnLogin = $('#btn-show-login');
+  const btnLogout = $('#btn-logout');
+  if (currentUser) {
+    label.textContent = currentUser.email;
+    btnLogin.style.display = 'none';
+    btnLogout.style.display = '';
+  } else {
+    label.textContent = '未登录';
+    btnLogin.style.display = '';
+    btnLogout.style.display = 'none';
+  }
+}
 
 // ──── 罪名库（18条，"本周热门"前6条随机排序 ────
 const CRIMES_ALL = [
@@ -402,6 +751,16 @@ const flameBtn = $('#flame-btn'), flameBtnWrap = $('#flame-btn-wrap'), flameHint
 const healQuote = $('#heal-quote'), restartBtn = $('#restart-btn');
 const shareCardCanvas = $('#share-card-canvas'), saveCardBtn = $('#save-card-btn');
 const ctxPoster = posterCanvas.getContext('2d'), ctxFire = fireCanvas.getContext('2d');
+// 认证相关 DOM
+const authBar = $('#auth-bar'), authUserLabel = $('#auth-user-label');
+const btnShowLogin = $('#btn-show-login'), btnLogout = $('#btn-logout');
+const authModalOverlay = $('#auth-modal-overlay'), authModalTitle = $('#auth-modal-title');
+const authModalSub = $('#auth-modal-sub'), authEmail = $('#auth-email'), authPassword = $('#auth-password'), authPassword2 = $('#auth-password2');
+const btnAuthSubmit = $('#btn-auth-submit'), authError = $('#auth-error');
+const btnSwitchMode = $('#btn-switch-mode'), btnCloseModal = $('#btn-close-modal');
+const btnForgotPwd = $('#btn-forgot-pwd');
+const upgradePrompt = $('#upgrade-prompt'), btnUpgradeLogin = $('#btn-upgrade-login');
+const btnSkipUpgrade = $('#btn-skip-upgrade');
 
 // ──── 状态 ────
 let selectedCrime = null, currentName = '', currentVerdict = '';
@@ -819,46 +1178,85 @@ function drawStamp(ctx, scale, rot, alpha) {
   ctx.rotate(rot);
   ctx.scale(scale, scale);
 
-  // 外圈红底 — 仿朱砂印泥色
-  ctx.fillStyle = `rgba(185,36,36,${alpha * 0.78})`;
+  // 朱砂红底
+  ctx.fillStyle = `rgba(178,34,34,${alpha * 0.82})`;
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.fill();
 
-  // 外粗环 — 印章边框
-  ctx.strokeStyle = `rgba(205,48,42,${alpha * 0.82})`;
-  ctx.lineWidth = r * 0.07;
+  // 做旧斑驳
+  ctx.save();
+  ctx.globalAlpha = alpha * 0.22;
+  for (let i = 0; i < 20; i++) {
+    const sx = (Math.random() - 0.5) * r * 1.5;
+    const sy = (Math.random() - 0.5) * r * 1.5;
+    const sr = Math.random() * r * 0.12 + r * 0.04;
+    ctx.fillStyle = `rgba(120,20,20,${Math.random() * 0.4})`;
+    ctx.beginPath();
+    ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // ── 外圈芒纹锯齿（24齿放射状）──
+  const teeth = 24;
+  const outerR = r * 0.88;
+  const innerR = r * 0.78;
+  const toothHeight = r * 0.07;
+  ctx.strokeStyle = `rgba(190,40,40,${alpha * 0.88})`;
+  ctx.lineWidth = r * 0.065;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.arc(0, 0, r * 0.86, 0, Math.PI * 2);
+  for (let i = 0; i < teeth; i++) {
+    const a = (i / teeth) * Math.PI * 2 - Math.PI / 2;
+    const baseR = i % 2 === 0 ? outerR + toothHeight : outerR;
+    const px = Math.cos(a) * baseR;
+    const py = Math.sin(a) * baseR;
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.closePath();
   ctx.stroke();
 
-  // 内细环 — 装饰线
-  ctx.strokeStyle = `rgba(205,48,42,${alpha * 0.55})`;
+  // ── 内圈实环 ──
+  ctx.strokeStyle = `rgba(190,40,40,${alpha * 0.7})`;
+  ctx.lineWidth = r * 0.03;
+  ctx.beginPath();
+  ctx.arc(0, 0, innerR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // ── 四方位十字刻标 ──
+  const crossR = r * 0.65;
+  const crossSize = r * 0.08;
+  ctx.strokeStyle = `rgba(244,225,179,${alpha * 0.5})`;
   ctx.lineWidth = r * 0.022;
-  ctx.beginPath();
-  ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
-  ctx.stroke();
+  ctx.lineCap = 'round';
+  [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach(angle => {
+    const cx = Math.cos(angle) * crossR;
+    const cy = Math.sin(angle) * crossR;
+    ctx.beginPath();
+    if (angle === 0 || angle === Math.PI) {
+      // 水平方向十字
+      ctx.moveTo(cx - crossSize, cy);
+      ctx.lineTo(cx + crossSize, cy);
+      ctx.moveTo(cx, cy - crossSize);
+      ctx.lineTo(cx, cy + crossSize);
+    } else {
+      // 垂直方向十字
+      ctx.moveTo(cx - crossSize, cy);
+      ctx.lineTo(cx + crossSize, cy);
+      ctx.moveTo(cx, cy - crossSize);
+      ctx.lineTo(cx, cy + crossSize);
+    }
+    ctx.stroke();
+  });
 
-  // "已判" 白文 — 居中，仿传统印章阴刻
-  const fontSize = r * 0.55;
+  // ── "已判" 白文大字 ──
+  const fontSize = r * 0.52;
   ctx.font = `bold ${fontSize}px 'STKaiti','KaiTi','楷体','STSong','SimSun','PingFang SC',serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = `rgba(244,225,179,${alpha * 0.9})`;
-  ctx.fillText('已判', 0, 0);
-
-  // 底部五角星 — 官方印章标识
-  const starR = r * 0.14;
-  ctx.fillStyle = `rgba(244,225,179,${alpha * 0.6})`;
-  ctx.beginPath();
-  for (let i = 0; i < 5; i++) {
-    const a = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-    const sx = Math.cos(a) * starR;
-    const sy = Math.sin(a) * starR + r * 0.28;
-    i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
-  }
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillStyle = `rgba(244,225,179,${alpha * 0.93})`;
+  ctx.fillText('已判', 0, r * 0.02);
 
   ctx.restore();
 }
@@ -1162,6 +1560,9 @@ function showHealingPhase() {
   for (const p of particlePool) {
     if (p.alive) p.life = Math.min(p.life, 0.5);
   }
+  const wasFreeUse = !isLoggedIn();
+  if (wasFreeUse) markFreeUsed();
+
   setTimeout(() => {
     for (const p of particlePool) p.alive = false;
     ctxPoster.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
@@ -1170,6 +1571,12 @@ function showHealingPhase() {
     healQuote.textContent = pick(HEALING_QUOTES);
     healQuote.style.animation = 'none'; healQuote.offsetHeight;
     healQuote.style.animation = 'fadeInUp 1s ease-out';
+    // 免费用完后显示升级引导
+    if (wasFreeUse) {
+      upgradePrompt.style.display = 'block';
+    } else {
+      upgradePrompt.style.display = 'none';
+    }
     setTimeout(generateShareCard, 500);
   }, 600);
 }
@@ -1338,6 +1745,11 @@ function startBurning() {
 generateBtn.addEventListener('click', () => {
   currentName = nameInput.value.trim();
   if (!currentName || !selectedCrime) return;
+  // 每日免费检查：未登录且今日已用 → 引导登录
+  if (!isLoggedIn() && !canFreeUseToday()) {
+    showAuthModal('login');
+    return;
+  }
   // 重置
   isBurning = false; burnProgress = 0; burnedBlocks = null; postBurnStartTime = 0;
   isRevealing = false; coveredBlocks = null; isStampAnimating = false;
@@ -1377,6 +1789,7 @@ restartBtn.addEventListener('click', () => {
   flameHint.textContent = '长按点燃';
   shareCardCanvas.style.display = 'none';
   saveCardBtn.style.display = 'none';
+  upgradePrompt.style.display = 'none';
   audioEngine.stopFire();
   if (typewriterTimer) clearInterval(typewriterTimer);
   // 重置状态
@@ -1385,6 +1798,170 @@ restartBtn.addEventListener('click', () => {
   updateGenerateBtn();
   // 重新随机排序罪名
   initCrimeTags();
+});
+
+// ──── 认证 UI 事件 ────
+function showAuthModal(mode) {
+  authMode = mode;
+  if (mode === 'login') {
+    authModalTitle.textContent = '登 录';
+    authModalSub.textContent = '登录后无限体验全部功能';
+    btnAuthSubmit.textContent = '登 录';
+    btnSwitchMode.textContent = '还没有账号？去注册 →';
+    btnForgotPwd.style.display = '';
+    authEmail.style.display = '';
+    authPassword.style.display = '';
+    authPassword.placeholder = '密码（至少6位）';
+    authPassword2.style.display = 'none';
+  } else if (mode === 'reset') {
+    authModalTitle.textContent = '重 置 密 码';
+    authModalSub.textContent = '输入邮箱，我们将发送重置链接';
+    btnAuthSubmit.textContent = '发 送 重 置 邮 件';
+    btnSwitchMode.textContent = '返回登录';
+    btnForgotPwd.style.display = 'none';
+    authEmail.style.display = '';
+    authPassword.style.display = 'none';
+    authPassword2.style.display = 'none';
+  } else if (mode === 'newPassword') {
+    authModalTitle.textContent = '设 置 新 密 码';
+    authModalSub.textContent = '请输入新密码并确认';
+    btnAuthSubmit.textContent = '重 置 密 码';
+    btnSwitchMode.textContent = '返回登录';
+    btnForgotPwd.style.display = 'none';
+    authEmail.style.display = 'none';
+    authPassword.style.display = '';
+    authPassword.placeholder = '新密码（至少6位）';
+    authPassword2.style.display = '';
+  } else {
+    authModalTitle.textContent = '注 册';
+    authModalSub.textContent = '注册即享无限体验';
+    btnAuthSubmit.textContent = '注 册';
+    btnSwitchMode.textContent = '已有账号？去登录 →';
+    btnForgotPwd.style.display = 'none';
+    authEmail.style.display = '';
+    authPassword.style.display = '';
+    authPassword.placeholder = '密码（至少6位）';
+    authPassword2.style.display = 'none';
+  }
+  authError.textContent = '';
+  authEmail.value = '';
+  authPassword.value = '';
+  authPassword2.value = '';
+  authModalOverlay.classList.add('active');
+}
+
+function hideAuthModal() {
+  authModalOverlay.classList.remove('active');
+  if (authMode === 'newPassword') recoveryToken = null;
+}
+
+btnShowLogin.addEventListener('click', () => showAuthModal('login'));
+btnCloseModal.addEventListener('click', hideAuthModal);
+authModalOverlay.addEventListener('click', (e) => {
+  if (e.target === authModalOverlay) hideAuthModal();
+});
+
+btnSwitchMode.addEventListener('click', () => {
+  showAuthModal(authMode === 'login' ? 'register' : 'login');
+});
+
+btnForgotPwd.addEventListener('click', () => {
+  showAuthModal('reset');
+});
+
+btnAuthSubmit.addEventListener('click', async () => {
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+  const password2 = authPassword2.value;
+  if (authMode === 'newPassword') {
+    if (!password) { authError.textContent = '请填写新密码'; return; }
+    if (password.length < 6) { authError.textContent = '密码至少6位'; return; }
+    if (password !== password2) { authError.textContent = '两次密码不一致'; return; }
+    authError.textContent = '处理中...';
+    const { error } = await updatePasswordWithToken(recoveryToken, password);
+    if (error) {
+      authError.textContent = error.message || '重置失败';
+    } else {
+      authError.textContent = '';
+      recoveryToken = null;
+      alert('密码重置成功！请重新登录。');
+      showAuthModal('login');
+    }
+    return;
+  }
+  if (!email) { authError.textContent = '请填写邮箱'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email)) { authError.textContent = '邮箱格式不正确（需要完整域名，如 @qq.com）'; return; }
+  if (authMode !== 'reset') {
+    if (!password) { authError.textContent = '请填写邮箱和密码'; return; }
+    if (password.length < 6) { authError.textContent = '密码至少6位'; return; }
+  }
+  authError.textContent = '处理中...';
+
+  if (authMode === 'reset') {
+    const { error } = await sendPasswordReset(email);
+    if (error) {
+      authError.textContent = error.message || '发送失败';
+    } else {
+      authError.textContent = '';
+      alert('重置邮件已发送，请查收邮箱点击链接。');
+      hideAuthModal();
+    }
+  } else if (authMode === 'register') {
+    const { error, needConfirmation } = await signUp(email, password);
+    if (error) {
+      const msg = error.message || '';
+      if (msg.includes('already registered') || msg.includes('already been registered'))
+        authError.textContent = '该邮箱已注册，请直接登录';
+      else if (msg.includes('invalid format') || msg.includes('validate email'))
+        authError.textContent = '邮箱格式不正确';
+      else if (msg.includes('password'))
+        authError.textContent = '密码不符合要求（至少6位）';
+      else
+        authError.textContent = msg || '注册失败';
+    } else if (needConfirmation) {
+      authError.textContent = '';
+      alert('注册成功！请查收邮箱确认邮件，点击链接验证后即可登录。');
+    } else {
+      authError.textContent = '';
+      hideAuthModal();
+    }
+  } else {
+    const { error } = await signIn(email, password);
+    if (error) {
+      const msg = error.message || '';
+      if (msg.includes('Invalid login') || msg.includes('invalid_grant') || msg.includes('incorrect'))
+        authError.textContent = '账号不存在或密码错误，未注册请先注册';
+      else if (msg.includes('Email not confirmed'))
+        authError.textContent = '邮箱尚未验证，请先点击确认邮件中的链接';
+      else
+        authError.textContent = msg || '登录失败';
+    } else {
+      authError.textContent = '';
+      hideAuthModal();
+    }
+  }
+});
+
+// 键盘提交
+authPassword.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') btnAuthSubmit.click();
+});
+authPassword2.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') btnAuthSubmit.click();
+});
+
+btnLogout.addEventListener('click', async () => {
+  await signOut();
+});
+
+// 升级引导按钮
+btnUpgradeLogin.addEventListener('click', () => {
+  upgradePrompt.style.display = 'none';
+  showAuthModal('login');
+});
+
+btnSkipUpgrade.addEventListener('click', () => {
+  upgradePrompt.style.display = 'none';
 });
 
 // ──── AudioEngine v2 ────
@@ -1622,10 +2199,36 @@ document.body.addEventListener('pointerdown', () => {
   if (!audioInited) { audioInited = true; audioEngine.init(); audioEngine.playAmbient(); }
 }, { once: true });
 
+// ──── 处理邮件验证回调 ────
+function handleEmailConfirmation() {
+  const hash = window.location.hash.substring(1);
+  if (!hash) return false;
+  const params = new URLSearchParams(hash);
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  const type = params.get('type');
+  if (accessToken && type === 'signup') {
+    localStorage.setItem('sb_access_token', accessToken);
+    if (refreshToken) localStorage.setItem('sb_refresh_token', refreshToken);
+    window.location.hash = '';
+    return true;
+  }
+  return false;
+}
+
 // ──── 启动 ────
 function init() {
   initCrimeTags();
   resizeCanvases();
+  const pwdReset = handlePasswordReset();
+  const emailConfirmed = handleEmailConfirmation();
+  if (!pwdReset) {
+    restoreSession().then(() => {
+      if (emailConfirmed) {
+        alert('邮箱验证成功！已自动登录。');
+      }
+    });
+  }
   lastTime = 0;
   animFrameId = requestAnimationFrame(animate);
 }
