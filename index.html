@@ -764,8 +764,7 @@ function startTypewriter(w, h) {
       finalizeToSource(w, h, 3);
       ctxPoster.clearRect(0, 0, w, h);
       ctxPoster.drawImage(sourceCanvas, 0, 0);
-      // 短暂停顿后盖章，给用户阅读落款的时间
-      setTimeout(() => startStampAnimation(w, h), 500);
+      startStampAnimation(w, h);
       return;
     }
 
@@ -877,24 +876,13 @@ function updateReveal() {
   const noiseScale = progress > 0.05 ? 28 : 6;
   const cols = Math.ceil(w / BLOCK_SIZE), rows = Math.ceil(h / BLOCK_SIZE);
 
-  // 只遍历揭示边缘附近的块，不扫全画布
-  const rInBlocks = revealRadius / BLOCK_SIZE;
-  const margin = (noiseScale + 5) / BLOCK_SIZE + 1;
-  const minBX = Math.max(0, Math.floor(cx / BLOCK_SIZE - rInBlocks - margin));
-  const maxBX = Math.min(cols - 1, Math.ceil(cx / BLOCK_SIZE + rInBlocks + margin));
-  const minBY = Math.max(0, Math.floor(cy / BLOCK_SIZE - rInBlocks - margin));
-  const maxBY = Math.min(rows - 1, Math.ceil(cy / BLOCK_SIZE + rInBlocks + margin));
-
   const toRemove = [];
-  for (let by = minBY; by <= maxBY; by++) {
-    for (let bx = minBX; bx <= maxBX; bx++) {
-      const key = `${bx},${by}`;
-      if (!coveredBlocks.has(key)) continue;
-      const bpx = bx * BLOCK_SIZE + BLOCK_SIZE / 2, bpy = by * BLOCK_SIZE + BLOCK_SIZE / 2;
-      const dist = Math.sqrt((bpx - cx) ** 2 + (bpy - cy) ** 2);
-      const noise = fbm(bpx * 0.035, bpy * 0.035 + progress * 2) * noiseScale;
-      if (dist > revealRadius - noise) toRemove.push(key);
-    }
+  for (const key of coveredBlocks) {
+    const [bx, by] = key.split(',').map(Number);
+    const bpx = bx * BLOCK_SIZE + BLOCK_SIZE / 2, bpy = by * BLOCK_SIZE + BLOCK_SIZE / 2;
+    const dist = Math.sqrt((bpx - cx) ** 2 + (bpy - cy) ** 2);
+    const noise = fbm(bpx * 0.035, bpy * 0.035 + progress * 2, 3) * noiseScale;
+    if (dist > revealRadius - noise) toRemove.push(key);
   }
   for (const key of toRemove) coveredBlocks.delete(key);
 
@@ -924,7 +912,7 @@ function smoothNoise(x,y) {
   const n00=hash(ix,iy),n10=hash(ix+1,iy),n01=hash(ix,iy+1),n11=hash(ix+1,iy+1);
   return n00+(n10-n00)*sx+(n01-n00)*sy+((n11-n01)-(n10-n00))*sx*sy;
 }
-function fbm(x,y,o=2) { let v=0,a=1,f=1,m=0; for(let i=0;i<o;i++){v+=a*smoothNoise(x*f,y*f);m+=a;a*=0.5;f*=2;} return v/m; }
+function fbm(x,y,o=3) { let v=0,a=1,f=1,m=0; for(let i=0;i<o;i++){v+=a*smoothNoise(x*f,y*f);m+=a;a*=0.5;f*=2;} return v/m; }
 
 // ──── ParticleSystem ────
 const MAX_PARTICLES = 400;
@@ -998,7 +986,7 @@ function renderParticles(ctx, cw, ch) {
 }
 
 // ──── BurnController ────
-const BLOCK_SIZE = 6;
+const BLOCK_SIZE = 4;
 let maxBurnRadius = 0, burnedBlocks = null, frameCount = 0;
 let convergePoint = null;
 
@@ -1022,21 +1010,13 @@ function updateBurn(dt) {
   const noiseScale = burnProgress > 0.05 ? 30 : 5;
   const cols = Math.ceil(w / BLOCK_SIZE), rows = Math.ceil(h / BLOCK_SIZE);
 
-  // 只遍历燃烧半径附近的块，不扫全画布
-  const margin = (noiseScale + 10) / BLOCK_SIZE + 1;
-  const rInBlocks = baseRadius / BLOCK_SIZE;
-  const minBX = Math.max(0, Math.floor((burnCX / BLOCK_SIZE) - rInBlocks - margin));
-  const maxBX = Math.min(cols - 1, Math.ceil((burnCX / BLOCK_SIZE) + rInBlocks + margin));
-  const minBY = Math.max(0, Math.floor((burnCY / BLOCK_SIZE) - rInBlocks - margin));
-  const maxBY = Math.min(rows - 1, Math.ceil((burnCY / BLOCK_SIZE) + rInBlocks + margin));
-
-  for (let by = minBY; by <= maxBY; by++) {
-    for (let bx = minBX; bx <= maxBX; bx++) {
+  for (let by = 0; by < rows; by++) {
+    for (let bx = 0; bx < cols; bx++) {
       const key = `${bx},${by}`;
       if (burnedBlocks.has(key)) continue;
       const bpx = bx*BLOCK_SIZE+BLOCK_SIZE/2, bpy = by*BLOCK_SIZE+BLOCK_SIZE/2;
       const dist = Math.sqrt((bpx-burnCX)**2 + (bpy-burnCY)**2);
-      const noise = fbm(bpx*0.03, bpy*0.03+burnProgress*2) * noiseScale;
+      const noise = fbm(bpx*0.03, bpy*0.03+burnProgress*2, 3) * noiseScale;
       const jitter = (Math.random()-0.5)*8;
       if (dist < baseRadius + noise + jitter) burnedBlocks.add(key);
     }
@@ -1433,7 +1413,7 @@ const audioEngine = {
     lpFilter.type = 'lowpass'; lpFilter.frequency.value = 400 + Math.random() * 200;
     const lpGain = this.ctx.createGain(); lpGain.gain.value = 0.15;
     const dryGain = this.ctx.createGain(); dryGain.gain.value = 0.7;
-    const outGain = this.ctx.createGain(); outGain.gain.value = 0.50;
+    const outGain = this.ctx.createGain(); outGain.gain.value = 0.22;
     src.connect(bp); bp.connect(dryGain); dryGain.connect(outGain);
     src.connect(lpFilter); lpFilter.connect(lpGain); lpGain.connect(outGain);
     outGain.connect(this.ctx.destination);
@@ -1483,12 +1463,12 @@ const audioEngine = {
     // 低频闷响层（印章砸击的沉重感）
     const lp = this.ctx.createBiquadFilter();
     lp.type = 'lowpass'; lp.frequency.value = 180;
-    const lpGain = this.ctx.createGain(); lpGain.gain.value = 1.1;
+    const lpGain = this.ctx.createGain(); lpGain.gain.value = 0.6;
     // 中频冲击层（印章碰撞的清脆声）
     const bp = this.ctx.createBiquadFilter();
     bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.2;
-    const bpGain = this.ctx.createGain(); bpGain.gain.value = 0.5;
-    const outGain = this.ctx.createGain(); outGain.gain.value = 1.6;
+    const bpGain = this.ctx.createGain(); bpGain.gain.value = 0.25;
+    const outGain = this.ctx.createGain(); outGain.gain.value = 0.75;
     src.connect(lp); lp.connect(lpGain); lpGain.connect(outGain);
     src.connect(bp); bp.connect(bpGain); bpGain.connect(outGain);
     outGain.connect(this.ctx.destination);
