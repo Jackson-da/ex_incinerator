@@ -32,6 +32,23 @@ body::before {
   position:relative; z-index:1; width:100%; max-width:720px;
   min-height:100vh; padding:48px 28px;
   display:flex; flex-direction:column; align-items:center;
+  /* 暗黑外框 */
+  background:rgba(8,8,8,0.55);
+  border:1px solid rgba(184,148,62,0.2);
+  outline:1px solid rgba(184,148,62,0.06);
+  outline-offset:6px;
+  box-shadow:0 0 160px rgba(255,94,19,0.04),0 0 4px rgba(184,148,62,0.1);
+}
+/* 四角装饰 — 与通缉令十字呼应 */
+#app::before {
+  content:''; position:absolute; inset:-7px;
+  pointer-events:none;
+  background:
+    linear-gradient(135deg, rgba(184,148,62,0.3) 2px, transparent 2px) 0 0 / 11px 11px,
+    linear-gradient(225deg, rgba(184,148,62,0.3) 2px, transparent 2px) 100% 0 / 11px 11px,
+    linear-gradient(45deg,  rgba(184,148,62,0.3) 2px, transparent 2px) 0 100% / 11px 11px,
+    linear-gradient(315deg, rgba(184,148,62,0.3) 2px, transparent 2px) 100% 100% / 11px 11px;
+  background-repeat:no-repeat;
 }
 .phase { display:none; flex-direction:column; align-items:center; width:100%; }
 .phase.active { display:flex; }
@@ -161,6 +178,15 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
 #restart-btn:hover { background:rgba(126,200,160,0.08); box-shadow:0 0 20px rgba(126,200,160,0.15); }
 @media (max-width:600px) {
   #app { padding:24px 14px; }
+  #app::before {
+    inset:-5px;
+    background:
+      linear-gradient(135deg, rgba(184,148,62,0.3) 2px, transparent 2px) 0 0 / 9px 9px,
+      linear-gradient(225deg, rgba(184,148,62,0.3) 2px, transparent 2px) 100% 0 / 9px 9px,
+      linear-gradient(45deg,  rgba(184,148,62,0.3) 2px, transparent 2px) 0 100% / 9px 9px,
+      linear-gradient(315deg, rgba(184,148,62,0.3) 2px, transparent 2px) 100% 100% / 9px 9px;
+    background-repeat:no-repeat;
+  }
   .app-title { font-size:36px; letter-spacing:5px; }
   .app-subtitle { font-size:15px; }
   .crime-tag { padding:8px 14px; font-size:14px; }
@@ -181,7 +207,7 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
     <p class="app-subtitle">EX INCINERATOR</p>
     <div class="input-group">
       <label>前任的名字 / 昵称</label>
-      <input type="text" id="name-input" placeholder="输入TA的名字..." maxlength="20">
+      <input type="text" id="name-input" placeholder="输入TA的名字..." maxlength="12">
     </div>
     <div class="input-group">
       <label>选择罪名 <span style="color:var(--hot);font-size:13px;">🔥 本周热门</span></label>
@@ -637,14 +663,26 @@ function drawCrimeLabel(ctx, w, h) {
   ctx.fillText(selectedCrime, cx + crimeW * 0.12, crimeLabelY);
 }
 
+// 绘制名字（过长自动缩字号召唤）
+function drawNameFit(ctx, cx, nameY, text, w) {
+  const b3 = w * 0.06 + 14;
+  const maxW = w - b3 * 2;
+  let fs = w * 0.08;
+  ctx.font = `bold ${fs}px 'STKaiti','KaiTi','楷体','SimSun',serif`;
+  if (ctx.measureText(text).width > maxW) {
+    fs *= maxW / ctx.measureText(text).width;
+    ctx.font = `bold ${fs}px 'STKaiti','KaiTi','楷体','SimSun',serif`;
+  }
+  ctx.fillText(text, cx, nameY);
+}
+
 function finalizeToSource(w, h, phase) {
   const sctx = sourceCanvas.getContext('2d');
   const cx = w / 2;
   // 写名字
   sctx.fillStyle = '#1a0f0a';
-  sctx.font = `bold ${w * 0.08}px 'STKaiti','KaiTi','楷体','SimSun',serif`;
   sctx.textAlign = 'center';
-  sctx.fillText(currentName, cx, nameY);
+  drawNameFit(sctx, cx, nameY, currentName, w);
   // 写罪名
   drawCrimeLabel(sctx, w, h);
   if (phase >= 2) {
@@ -665,12 +703,11 @@ function drawTypewriterFrame(ctx, w, h, lineHeight) {
   const cx = w / 2;
   // 名字（phase 0 逐字，phase 1+ 完整）
   ctx.fillStyle = '#1a0f0a';
-  ctx.font = `bold ${w * 0.08}px 'STKaiti','KaiTi','楷体','SimSun',serif`;
   ctx.textAlign = 'center';
   if (typePhase === 0) {
-    ctx.fillText(currentName.substring(0, typewriterIndex), cx, nameY);
+    drawNameFit(ctx, cx, nameY, currentName.substring(0, typewriterIndex), w);
   } else {
-    ctx.fillText(currentName, cx, nameY);
+    drawNameFit(ctx, cx, nameY, currentName, w);
   }
   // 罪名（phase 1 逐字，phase 2+ 完整）
   if (typePhase >= 1) {
