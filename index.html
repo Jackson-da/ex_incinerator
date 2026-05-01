@@ -781,14 +781,48 @@ function drawStamp(ctx, scale, rot, alpha) {
   ctx.translate(x, y);
   ctx.rotate(rot);
   ctx.scale(scale, scale);
-  // 红色圆底
-  ctx.fillStyle = `rgba(180,40,40,${alpha * 0.75})`;
-  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
-  // 文字 - 隶书雕刻风格
-  ctx.fillStyle = `rgba(244,225,179,${alpha * 0.85})`;
-  ctx.font = `bold ${r * 0.72}px 'STLiti','LiSu','隶书','STKaiti','KaiTi',serif`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+  // 外圈红底 — 仿朱砂印泥色
+  ctx.fillStyle = `rgba(185,36,36,${alpha * 0.78})`;
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 外粗环 — 印章边框
+  ctx.strokeStyle = `rgba(205,48,42,${alpha * 0.82})`;
+  ctx.lineWidth = r * 0.07;
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.86, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // 内细环 — 装饰线
+  ctx.strokeStyle = `rgba(205,48,42,${alpha * 0.55})`;
+  ctx.lineWidth = r * 0.022;
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.72, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // "已判" 白文 — 居中，仿传统印章阴刻
+  const fontSize = r * 0.55;
+  ctx.font = `bold ${fontSize}px 'STKaiti','KaiTi','楷体','STSong','SimSun','PingFang SC',serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = `rgba(244,225,179,${alpha * 0.9})`;
   ctx.fillText('已判', 0, 0);
+
+  // 底部五角星 — 官方印章标识
+  const starR = r * 0.14;
+  ctx.fillStyle = `rgba(244,225,179,${alpha * 0.6})`;
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+    const sx = Math.cos(a) * starR;
+    const sy = Math.sin(a) * starR + r * 0.28;
+    i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  }
+  ctx.closePath();
+  ctx.fill();
+
   ctx.restore();
 }
 
@@ -915,7 +949,7 @@ function smoothNoise(x,y) {
 function fbm(x,y,o=3) { let v=0,a=1,f=1,m=0; for(let i=0;i<o;i++){v+=a*smoothNoise(x*f,y*f);m+=a;a*=0.5;f*=2;} return v/m; }
 
 // ──── ParticleSystem ────
-const MAX_PARTICLES = 400;
+const MAX_PARTICLES = 250;
 const particlePool = [];
 
 function createParticle(x, y, type = 'fire') {
@@ -967,17 +1001,17 @@ function renderParticles(ctx, cw, ch) {
     const ratio = p.life / p.maxLife;
     if (p.type === 'fire') {
       ctx.fillStyle = getFireColor(ratio);
-      ctx.shadowColor = ratio>0.5 ? 'rgba(255,150,30,0.6)' : 'rgba(255,50,0,0.3)';
-      ctx.shadowBlur = p.size*2.5;
+      ctx.shadowColor = ratio>0.5 ? 'rgba(255,150,30,0.5)' : 'rgba(255,50,0,0.2)';
+      ctx.shadowBlur = p.size*1.5;
     } else if (p.type === 'converge') {
       ctx.fillStyle = `rgba(255,220,180,${ratio})`;
-      ctx.shadowColor = 'rgba(255,200,150,0.8)';
-      ctx.shadowBlur = p.size*4;
+      ctx.shadowColor = 'rgba(255,200,150,0.6)';
+      ctx.shadowBlur = p.size*2.5;
     } else {
       const a = ratio;
       ctx.fillStyle = `rgba(170,160,150,${a})`;
-      ctx.shadowColor = 'rgba(180,170,160,0.3)';
-      ctx.shadowBlur = p.size*1.5;
+      ctx.shadowColor = 'rgba(180,170,160,0.2)';
+      ctx.shadowBlur = p.size*0.8;
     }
     ctx.beginPath(); ctx.arc(p.x, p.y, p.size*ratio, 0, Math.PI*2); ctx.fill();
   }
@@ -1024,10 +1058,14 @@ function updateBurn(dt) {
 
   ctxPoster.clearRect(0, 0, w, h);
   ctxPoster.drawImage(sourceCanvas, 0, 0);
+  // 合并所有已燃块为单次 path fill，减少数千次独立绘制调用
+  ctxPoster.fillStyle = '#0a0a0a';
+  ctxPoster.beginPath();
   for (const key of burnedBlocks) {
     const [bx, by] = key.split(',').map(Number);
-    ctxPoster.clearRect(bx*BLOCK_SIZE, by*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+    ctxPoster.rect(bx*BLOCK_SIZE, by*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
   }
+  ctxPoster.fill();
 
   if (burnProgress < 0.95) {
     const edgeGlow = ctxPoster.createRadialGradient(burnCX, burnCY, baseRadius*0.85, burnCX, burnCY, baseRadius+15);
@@ -1036,7 +1074,7 @@ function updateBurn(dt) {
   }
 
   if (burnProgress < 0.9) {
-    const n = Math.floor((1-burnProgress)*60)+10;
+    const n = Math.floor((1-burnProgress)*35)+6;
     for (let i=0;i<n;i++) {
       const angle=Math.random()*Math.PI*2, r=baseRadius+(Math.random()-0.5)*20;
       const px=burnCX+Math.cos(angle)*r, py=burnCY+Math.sin(angle)*r;
@@ -1044,7 +1082,7 @@ function updateBurn(dt) {
     }
   }
   if (burnProgress > 0.7) {
-    const n = Math.floor((burnProgress-0.7)*80)+2;
+    const n = Math.floor((burnProgress-0.7)*45)+2;
     for (let i=0;i<n;i++) {
       const angle=Math.random()*Math.PI*2, r=baseRadius*(0.8+Math.random()*0.4);
       const px=burnCX+Math.cos(angle)*r, py=burnCY+Math.sin(angle)*r;
@@ -1071,7 +1109,7 @@ function finishBurning() {
     }
   }
   // 额外灰烬粒子从燃烧区域升起
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 40; i++) {
     const angle = Math.random() * Math.PI * 2;
     const r = Math.random() * maxBurnRadius * 0.8;
     createParticle(burnCX + Math.cos(angle)*r, burnCY + Math.sin(angle)*r, 'ash');
@@ -1221,7 +1259,7 @@ function animate(timestamp) {
 
 // ──── 长按 ────
 function onPointerDown(e) {
-  if (isBurning || burnProgress >= 1) return;
+  if (isBurning || isRevealing || isStampAnimating || typewriterTimer || burnProgress >= 1) return;
   e.preventDefault(); isPressing = true;
   flameBtn.classList.add('pressing'); flameHint.textContent = '继续按住...';
   const circle = flameBtn.querySelector('.progress-ring circle');
