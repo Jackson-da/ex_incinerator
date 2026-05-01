@@ -5,320 +5,180 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>前任焚烧炉</title>
 <style>
-/* ===== CSS 变量 & 全局 ===== */
 :root {
-  --bg: #0a0a0a;
-  --bg-panel: #111;
-  --parchment: #f4e1b3;
-  --parchment-dark: #d4c094;
-  --ink: #1a0f0a;
-  --blood: #8b1a1a;
-  --blood-light: #b52828;
-  --gold: #b8943e;
-  --ember: #ff5e13;
-  --flame: #ffb000;
-  --flame-hot: #fffbe0;
-  --ash: #8a8a8a;
-  --text: #c8c0b0;
-  --text-dim: #6a6558;
-  --healing: #7ec8a0;
-  --radius: 8px;
+  --bg: #0a0a0a; --bg-panel: #111;
+  --parchment: #f4e1b3; --parchment-dark: #d4c094;
+  --ink: #1a0f0a; --blood: #8b1a1a; --blood-light: #b52828;
+  --gold: #b8943e; --ember: #ff5e13; --flame: #ffb000;
+  --ash: #8a8a8a; --text: #c8c0b0; --text-dim: #6a6558;
+  --healing: #7ec8a0; --hot: #ff4757; --radius: 8px;
 }
-
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { width: 100%; height: 100%; overflow-x: hidden; }
-
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:100%; height:100%; overflow-x:hidden; }
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'PingFang SC', 'Microsoft YaHei', '微软雅黑', sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  background:var(--bg); color:var(--text);
+  font-family:'PingFang SC','Microsoft YaHei','微软雅黑',sans-serif;
+  display:flex; justify-content:center; align-items:center;
+  min-height:100vh; user-select:none; -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
 }
-
-/* 背景光晕 */
 body::before {
-  content: '';
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 800px; height: 800px;
-  background: radial-gradient(circle, rgba(255,94,19,0.05) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+  content:''; position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%); width:800px; height:800px;
+  background:radial-gradient(circle, rgba(255,94,19,0.05) 0%, transparent 70%);
+  pointer-events:none; z-index:0;
 }
-
-/* ===== 主容器 ===== */
 #app {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 720px;
-  min-height: 100vh;
-  padding: 48px 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position:relative; z-index:1; width:100%; max-width:720px;
+  min-height:100vh; padding:48px 28px;
+  display:flex; flex-direction:column; align-items:center;
 }
-
-/* ===== 音频按钮 ===== */
-#audio-toggle {
-  position: fixed;
-  top: 24px; right: 24px;
-  z-index: 100;
-  width: 56px; height: 56px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(8px);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
-}
-#audio-toggle:hover { border-color: rgba(255,255,255,0.3); }
-#audio-toggle svg { width: 26px; height: 26px; fill: var(--text); transition: opacity 0.3s; }
-#audio-toggle.muted .icon-on { opacity: 0.3; }
-#audio-toggle.muted .slash { opacity: 1; }
-#audio-toggle .slash { opacity: 0; position: absolute; width: 34px; height: 2px; background: var(--text); transform: rotate(-45deg); border-radius: 1px; transition: opacity 0.3s; }
-
-/* ===== 阶段容器 ===== */
-.phase { display: none; flex-direction: column; align-items: center; width: 100%; }
-.phase.active { display: flex; }
-
-/* ===== 标题 ===== */
+.phase { display:none; flex-direction:column; align-items:center; width:100%; }
+.phase.active { display:flex; }
 .app-title {
-  font-size: 48px;
-  font-weight: 700;
-  letter-spacing: 8px;
-  color: var(--ember);
-  text-align: center;
-  margin-bottom: 8px;
-  text-shadow: 0 0 50px rgba(255,94,19,0.3);
+  font-size:48px; font-weight:700; letter-spacing:8px;
+  color:var(--ember); text-align:center; margin-bottom:8px;
+  text-shadow:0 0 50px rgba(255,94,19,0.3);
 }
 .app-subtitle {
-  font-size: 18px;
-  color: var(--text-dim);
-  letter-spacing: 4px;
-  margin-bottom: 48px;
+  font-size:18px; color:var(--text-dim); letter-spacing:4px; margin-bottom:48px;
 }
-
-/* ===== 输入区 ===== */
-.input-group { width: 100%; margin-bottom: 28px; }
-.input-group label { display: block; font-size: 18px; color: var(--text-dim); margin-bottom: 12px; letter-spacing: 1px; }
-
+.input-group { width:100%; margin-bottom:28px; }
+.input-group label {
+  display:block; font-size:18px; color:var(--text-dim);
+  margin-bottom:12px; letter-spacing:1px;
+}
 #name-input {
-  width: 100%; padding: 18px 22px;
-  background: var(--bg-panel);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-size: 22px;
-  outline: none;
-  transition: border-color 0.3s;
-  font-family: inherit;
+  width:100%; padding:18px 22px; background:var(--bg-panel);
+  border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius);
+  color:var(--text); font-size:22px; outline:none;
+  transition:border-color 0.3s; font-family:inherit;
 }
-#name-input:focus { border-color: var(--ember); }
-#name-input::placeholder { color: var(--text-dim); }
-
-/* 罪名标签 */
-.crime-tags { display: flex; flex-wrap: wrap; gap: 14px; }
+#name-input:focus { border-color:var(--ember); }
+#name-input::placeholder { color:var(--text-dim); }
+.crime-tags { display:flex; flex-wrap:wrap; gap:12px; }
 .crime-tag {
-  padding: 12px 24px;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 28px;
-  background: var(--bg-panel);
-  color: var(--text-dim);
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.25s;
-  letter-spacing: 1px;
+  padding:10px 20px; border:1px solid rgba(255,255,255,0.12);
+  border-radius:24px; background:var(--bg-panel); color:var(--text-dim);
+  font-size:16px; cursor:pointer; transition:all 0.25s; letter-spacing:1px;
+  position:relative;
 }
-.crime-tag:hover { border-color: rgba(255,255,255,0.25); color: var(--text); }
-.crime-tag.selected { border-color: var(--ember); color: var(--ember); background: rgba(255,94,19,0.08); box-shadow: 0 0 16px rgba(255,94,19,0.15); }
-
-/* 生成按钮 */
+.crime-tag:hover { border-color:rgba(255,255,255,0.25); color:var(--text); }
+.crime-tag.selected {
+  border-color:var(--ember); color:var(--ember);
+  background:rgba(255,94,19,0.08); box-shadow:0 0 16px rgba(255,94,19,0.15);
+}
+.crime-tag .hot-badge {
+  position:absolute; top:-8px; right:-6px;
+  font-size:10px; background:var(--hot); color:#fff;
+  padding:1px 6px; border-radius:8px; animation:hotPulse 1.5s ease-in-out infinite;
+}
+@keyframes hotPulse {
+  0%,100% { transform:scale(1); }
+  50% { transform:scale(1.15); }
+}
 #generate-btn {
-  margin-top: 36px;
-  padding: 16px 56px;
-  border: 1px solid var(--ember);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--ember);
-  font-size: 20px;
-  letter-spacing: 5px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: inherit;
+  margin-top:36px; padding:16px 56px;
+  border:1px solid var(--ember); border-radius:4px;
+  background:transparent; color:var(--ember); font-size:20px;
+  letter-spacing:5px; cursor:pointer; transition:all 0.3s; font-family:inherit;
 }
-#generate-btn:hover { background: rgba(255,94,19,0.1); box-shadow: 0 0 24px rgba(255,94,19,0.2); }
-#generate-btn:disabled { border-color: var(--text-dim); color: var(--text-dim); cursor: not-allowed; opacity: 0.5; }
-
-/* ===== 通缉令画布区 ===== */
+#generate-btn:hover { background:rgba(255,94,19,0.1); box-shadow:0 0 24px rgba(255,94,19,0.2); }
+#generate-btn:disabled { border-color:var(--text-dim); color:var(--text-dim); cursor:not-allowed; opacity:0.5; }
 .canvas-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 540px;
-  aspect-ratio: 0.72;
-  margin: 0 auto;
+  position:relative; width:100%; max-width:540px;
+  aspect-ratio:0.72; margin:0 auto;
 }
 canvas.poster-layer, canvas.fire-layer {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  position:absolute; top:0; left:0; width:100%; height:100%;
 }
-canvas.poster-layer { z-index: 2; }
-canvas.fire-layer { z-index: 3; pointer-events: none; }
-
-/* 通缉令入场动画 */
+canvas.poster-layer { z-index:2; }
+canvas.fire-layer { z-index:3; pointer-events:none; }
 @keyframes posterDrop {
-  0% { opacity: 0; transform: translateY(-100px) rotate(-3deg); }
-  60% { opacity: 1; transform: translateY(8px) rotate(0.5deg); }
-  80% { transform: translateY(-4px) rotate(-0.3deg); }
-  100% { opacity: 1; transform: translateY(0) rotate(0); }
+  0% { opacity:0; transform:translateY(-100px) rotate(-3deg); }
+  60% { opacity:1; transform:translateY(8px) rotate(0.5deg); }
+  80% { transform:translateY(-4px) rotate(-0.3deg); }
+  100% { opacity:1; transform:translateY(0) rotate(0); }
 }
-.canvas-wrapper.drop-in { animation: posterDrop 0.9s ease-out forwards; }
-
-/* ===== 火焰按钮 ===== */
+.canvas-wrapper.drop-in { animation:posterDrop 0.9s ease-out forwards; }
 #flame-btn-wrap {
-  margin-top: 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+  margin-top:32px; display:flex; flex-direction:column;
+  align-items:center; gap:14px;
 }
 #flame-btn {
-  width: 110px; height: 110px;
-  border-radius: 50%;
-  border: 2px solid var(--ember);
-  background: radial-gradient(circle at center, rgba(255,94,19,0.2) 0%, rgba(0,0,0,0.6) 100%);
-  cursor: pointer;
-  position: relative;
-  transition: all 0.3s;
-  touch-action: none;
-  animation: btnPulse 2s ease-in-out infinite;
-  display: flex; align-items: center; justify-content: center;
+  width:110px; height:110px; border-radius:50%;
+  border:2px solid var(--ember);
+  background:radial-gradient(circle at center, rgba(255,94,19,0.2) 0%, rgba(0,0,0,0.6) 100%);
+  cursor:pointer; position:relative; transition:all 0.3s; touch-action:none;
+  animation:btnPulse 2s ease-in-out infinite;
+  display:flex; align-items:center; justify-content:center;
 }
-#flame-btn .btn-icon {
-  font-size: 42px;
-  position: relative;
-  z-index: 1;
-  pointer-events: none;
+#flame-btn .btn-icon { font-size:42px; position:relative; z-index:1; pointer-events:none; }
+#flame-btn:active, #flame-btn.pressing {
+  border-color:var(--flame); box-shadow:0 0 50px rgba(255,176,0,0.5);
 }
-#flame-btn:active, #flame-btn.pressing { border-color: var(--flame); box-shadow: 0 0 50px rgba(255,176,0,0.5); }
 #flame-btn .progress-ring {
-  position: absolute;
-  top: -6px; left: -6px;
-  width: calc(100% + 12px); height: calc(100% + 12px);
-  transform: rotate(-90deg);
-  pointer-events: none;
-  overflow: visible;
+  position:absolute; top:-6px; left:-6px;
+  width:calc(100% + 12px); height:calc(100% + 12px);
+  transform:rotate(-90deg); pointer-events:none; overflow:visible;
 }
 #flame-btn .progress-ring circle {
-  fill: none;
-  stroke: var(--flame);
-  stroke-width: 3;
-  stroke-dasharray: 0;
-  stroke-dashoffset: 0;
-  stroke-linecap: round;
-  opacity: 0;
-  transition: opacity 0.15s;
+  fill:none; stroke:var(--flame); stroke-width:3;
+  stroke-dasharray:0; stroke-dashoffset:0; stroke-linecap:round;
+  opacity:0; transition:opacity 0.15s;
 }
-#flame-btn.pressing .progress-ring circle { opacity: 1; }
-
+#flame-btn.pressing .progress-ring circle { opacity:1; }
 @keyframes btnPulse {
-  0%, 100% { box-shadow: 0 0 16px rgba(255,94,19,0.2); }
-  50% { box-shadow: 0 0 36px rgba(255,94,19,0.4); }
+  0%,100% { box-shadow:0 0 16px rgba(255,94,19,0.2); }
+  50% { box-shadow:0 0 36px rgba(255,94,19,0.4); }
 }
-
-.flame-hint { font-size: 16px; color: var(--text-dim); letter-spacing: 2px; animation: hintBlink 2s ease-in-out infinite; }
-@keyframes hintBlink {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+.flame-hint {
+  font-size:16px; color:var(--text-dim); letter-spacing:2px;
+  animation:hintBlink 2s ease-in-out infinite;
 }
-
-/* ===== 治愈阶段 ===== */
-#healing-section { text-align: center; }
-#healing-section .heal-icon {
-  font-size: 72px; margin-bottom: 28px;
-  animation: healFloat 3s ease-in-out infinite;
+@keyframes hintBlink { 0%,100% { opacity:0.5; } 50% { opacity:1; } }
+#healing-section { text-align:center; display:flex; flex-direction:column; align-items:center; gap:24px; }
+.heal-icon { font-size:72px; animation:healFloat 3s ease-in-out infinite; }
+@keyframes healFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-16px); } }
+.heal-quote {
+  font-size:24px; line-height:1.8; color:var(--healing);
+  letter-spacing:2px; max-width:480px; animation:fadeInUp 1s ease-out;
 }
-@keyframes healFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-16px); }
+@keyframes fadeInUp { 0% { opacity:0; transform:translateY(24px); } 100% { opacity:1; transform:translateY(0); } }
+#share-card-canvas {
+  width:100%; max-width:400px; border-radius:12px;
+  box-shadow:0 0 30px rgba(0,0,0,0.5); animation:fadeInUp 1.2s ease-out;
 }
-#healing-section .heal-quote {
-  font-size: 24px;
-  line-height: 1.8;
-  color: var(--healing);
-  letter-spacing: 2px;
-  max-width: 480px;
-  animation: fadeInUp 1s ease-out;
+#save-card-btn {
+  padding:14px 36px; border:1px solid var(--gold); border-radius:4px;
+  background:transparent; color:var(--gold); font-size:16px;
+  letter-spacing:2px; cursor:pointer; transition:all 0.3s; font-family:inherit;
 }
-@keyframes fadeInUp {
-  0% { opacity: 0; transform: translateY(24px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
+#save-card-btn:hover { background:rgba(184,148,62,0.1); box-shadow:0 0 20px rgba(184,148,62,0.15); }
 #restart-btn {
-  margin-top: 48px;
-  padding: 14px 40px;
-  border: 1px solid var(--healing);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--healing);
-  font-size: 18px;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: inherit;
+  padding:14px 40px; border:1px solid var(--healing); border-radius:4px;
+  background:transparent; color:var(--healing); font-size:18px;
+  letter-spacing:2px; cursor:pointer; transition:all 0.3s; font-family:inherit;
 }
-#restart-btn:hover { background: rgba(126,200,160,0.08); box-shadow: 0 0 20px rgba(126,200,160,0.15); }
-
-/* ===== 灰烬粒子 Canvas (治愈阶段) ===== */
-#ash-canvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 10;
-  opacity: 0;
-  transition: opacity 1s;
-}
-#ash-canvas.visible { opacity: 1; }
-
-/* ===== 响应式 ===== */
-@media (max-width: 600px) {
-  #app { padding: 24px 14px; }
-  .app-title { font-size: 36px; letter-spacing: 5px; }
-  .app-subtitle { font-size: 15px; }
-  .crime-tag { padding: 10px 18px; font-size: 16px; }
-  .canvas-wrapper { max-width: 94vw; }
-  #flame-btn { width: 96px; height: 96px; }
-  #flame-btn .btn-icon { font-size: 36px; }
-  .heal-quote { font-size: 20px; }
-  #name-input { font-size: 18px; padding: 14px 16px; }
-  #generate-btn { font-size: 18px; padding: 14px 44px; }
+#restart-btn:hover { background:rgba(126,200,160,0.08); box-shadow:0 0 20px rgba(126,200,160,0.15); }
+@media (max-width:600px) {
+  #app { padding:24px 14px; }
+  .app-title { font-size:36px; letter-spacing:5px; }
+  .app-subtitle { font-size:15px; }
+  .crime-tag { padding:8px 14px; font-size:14px; }
+  .canvas-wrapper { max-width:94vw; }
+  #flame-btn { width:96px; height:96px; }
+  #flame-btn .btn-icon { font-size:36px; }
+  .heal-quote { font-size:20px; }
+  #name-input { font-size:18px; padding:14px 16px; }
+  #generate-btn { font-size:18px; padding:14px 44px; }
 }
 </style>
 </head>
 <body>
 
 <div id="app">
-  <!-- 音频控制 -->
-  <button id="audio-toggle" title="背景音乐">
-    <svg class="icon-on" viewBox="0 0 24 24"><path d="M12 3v18l-6-6H2v-6h4l6-6zm10 9a7 7 0 0 0-4-6.3v12.6A7 7 0 0 0 22 12zm-4 4.2V7.8A5 5 0 0 1 20 12a5 5 0 0 1-2 4.2z"/></svg>
-    <div class="slash"></div>
-  </button>
-
-  <!-- 阶段1: 输入 -->
-  <div class="phase active" id="phase-input">
+    <div class="phase active" id="phase-input">
     <h1 class="app-title">前任焚烧炉</h1>
     <p class="app-subtitle">EX INCINERATOR</p>
     <div class="input-group">
@@ -326,13 +186,12 @@ canvas.fire-layer { z-index: 3; pointer-events: none; }
       <input type="text" id="name-input" placeholder="输入TA的名字..." maxlength="20">
     </div>
     <div class="input-group">
-      <label>选择罪名</label>
+      <label>选择罪名 <span style="color:var(--hot);font-size:13px;">🔥 本周热门</span></label>
       <div class="crime-tags" id="crime-tags"></div>
     </div>
     <button id="generate-btn" disabled>生 成 通 缉 令</button>
   </div>
 
-  <!-- 阶段2/3: 通缉令 + 燃烧 -->
   <div class="phase" id="phase-poster">
     <div class="canvas-wrapper" id="canvas-wrapper">
       <canvas class="poster-layer" id="poster-canvas"></canvas>
@@ -340,75 +199,158 @@ canvas.fire-layer { z-index: 3; pointer-events: none; }
     </div>
     <div id="flame-btn-wrap">
       <button id="flame-btn">
-        <svg class="progress-ring" viewBox="0 0 122 122">
-          <circle cx="61" cy="61" r="52"/>
-        </svg>
+        <svg class="progress-ring" viewBox="0 0 122 122"><circle cx="61" cy="61" r="52"/></svg>
         <span class="btn-icon">🔥</span>
       </button>
       <span class="flame-hint">长按点燃</span>
     </div>
   </div>
 
-  <!-- 阶段4: 治愈 -->
   <div class="phase" id="phase-healing">
-    <div class="heal-icon">🌱</div>
-    <p class="heal-quote" id="heal-quote"></p>
-    <button id="restart-btn">再 烧 一 个</button>
+    <div id="healing-section">
+      <div class="heal-icon">🌱</div>
+      <p class="heal-quote" id="heal-quote"></p>
+      <canvas id="share-card-canvas" style="display:none;"></canvas>
+      <button id="save-card-btn" style="display:none;">📥 保存分享卡片</button>
+      <button id="restart-btn">再 烧 一 个</button>
+    </div>
   </div>
 </div>
 
-<canvas id="ash-canvas"></canvas>
-
 <script>
-/* ================================================================
-   前任焚烧炉 — 全部应用逻辑
-   ================================================================ */
+/* =================================================================
+   前任焚烧炉 v2 — Layer 1 升级
+   - 18 条罪名 + 热门标签
+   - 增强音效：火柴划燃、噼啪、风声、治愈钟声
+   - 打字机动效 + 火焰从罪名烧起 + 灰烬聚光
+   - 分享卡片生成 + 二维码
+   ================================================================= */
 
-// ──── 文案数据集 ────
-const CRIMES = ['冷暴力', '画饼', '无缝衔接', 'PUA', '不回消息', '养鱼'];
+// ──── 罪名库（18条，"本周热门"前6条随机排序 ────
+const CRIMES_ALL = [
+  { name:'冷暴力', hot:true }, { name:'画饼', hot:true },
+  { name:'无缝衔接', hot:true }, { name:'PUA', hot:true },
+  { name:'不回消息', hot:true }, { name:'养鱼', hot:true },
+  { name:'忽冷忽热', hot:false }, { name:'已读不回', hot:false },
+  { name:'借钱不还', hot:false }, { name:'暧昧不清', hot:false },
+  { name:'精神出轨', hot:false }, { name:'撒谎成瘾', hot:false },
+  { name:'抠门到家', hot:false }, { name:'妈宝男/女', hot:false },
+  { name:'情绪勒索', hot:false }, { name:'翻旧账', hot:false },
+  { name:'吃软饭', hot:false }, { name:'敷衍大师', hot:false }
+];
 
+function getShuffledCrimes() {
+  const hot = CRIMES_ALL.filter(c => c.hot);
+  const cold = CRIMES_ALL.filter(c => !c.hot);
+  // Fisher-Yates
+  for (let i = hot.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [hot[i],hot[j]]=[hot[j],hot[i]]; }
+  for (let i = cold.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [cold[i],cold[j]]=[cold[j],cold[i]]; }
+  return [...hot, ...cold];
+}
+
+// ──── 判决文案库 ────
 const VERDICTS = {
   '冷暴力': [
-    '该用户因长期使用\"沉默\"作为大规模杀伤性武器，被情感国际法庭判处终身孤寂，不得上诉，立即执行。',
+    '该用户因长期使用"沉默"作为大规模杀伤性武器，被情感国际法庭判处终身孤寂，不得上诉，立即执行。',
     '经审查，嫌疑人以已读不回、对话终结术等方式实施冷暴力，造成原告精神损伤等级A+，判处永久拉黑。',
-    '该用户擅长以\"嗯\"\"哦\"\"好\"三字真言冻结一切对话，罪名成立，判处被全世界已读不回。',
+    '该用户擅长以"嗯""哦""好"三字真言冻结一切对话，罪名成立，判处被全世界已读不回。',
     '该用户的沉默技能已修炼至化境，伤及无辜，情感法庭决定没收其发言权终身。',
     '调查发现该用户累计无故消失3,628小时，按每天回复0.3条消息计算，需服刑至时间尽头。'
   ],
   '画饼': [
-    '该用户因虚构\"下次带你去\"\"以后一定\"等若干空头支票，涉嫌情感诈骗罪，判处梦想破产，终身不得画饼。',
-    '嫌疑人多次承诺\"等忙完这阵\"，经查其忙碌周期已持续11个世纪，判其永远忙下去。',
+    '该用户因虚构"下次带你去""以后一定"等若干空头支票，涉嫌情感诈骗罪，判处梦想破产，终身不得画饼。',
+    '嫌疑人多次承诺"等忙完这阵"，经查其忙碌周期已持续11个世纪，判其永远忙下去。',
     '该用户画饼手艺已获非遗认证，但所有产品均为三无产品，情感消费者协会决定永久取缔其营业资格。',
     '该用户的大饼累计面积可绕地球三圈，但因从未兑现一枚，情感法庭决定将其发配至饼子星球自食其力。',
-    '经统计，该用户共说出\"到时候\"247次，\"有机会\"183次，所有\"到时候\"均已过期，判处承诺失信终身。'
+    '经统计，该用户共说出"到时候"247次，"有机会"183次，所有"到时候"均已过期，判处承诺失信终身。'
   ],
   '无缝衔接': [
     '该用户被控在感情存续期间私设备胎，分手后0.01秒即完成衔接，犯有情感预备役罪，判处孤独终老。',
-    '嫌疑人展示了惊人的\"过渡能力\"——从一段感情到另一段感情的切换速度打破了人类道德纪录。',
+    '嫌疑人展示了惊人的"过渡能力"——从一段感情到另一段感情的切换速度打破了人类道德纪录。',
     '该用户擅长在感情之间实现无缝跳转，堪比奥运接力选手，现已被终身禁赛。',
     '调查发现该用户同时储备多个选项，实现感情冗余架构，技术含量高但人品含量低，判处架构崩溃。',
     '该用户的备胎管理能力堪比F1进站团队，3秒完成更换，但策略组已被永久解散。'
   ],
   'PUA': [
     '该用户因系统性地使用贬低-表扬循环操纵他人情感，犯有精神操控罪，判处被所有人看穿，永远无法得逞。',
-    '嫌疑人的搭讪技巧被鉴定为\"批量生产的工业垃圾\"，情感质量监督局决定销毁其所有话术脚本。',
+    '嫌疑人的搭讪技巧被鉴定为"批量生产的工业垃圾"，情感质量监督局决定销毁其所有话术脚本。',
     '该用户的忽冷忽热技术已达到工业级精度，但温度控制器已被情感法庭强制拆除。',
     '该用户的打压-奖励循环被认定构成精神传销，现已被列入情感黑名单，终身不得接近真诚之人。',
     '经鉴定，该用户的话术库已感染病毒，建议立即卸载并恢复出厂设置，但不保证恢复后能用。'
   ],
   '不回消息': [
     '该用户手机经鉴定并未丢失、并未没电、并未在开会，纯属故意不回消息，判处手机爆炸，社交账号归零。',
-    '调查显示该用户的聊天列表里至少17个对话处于\"未回复\"状态，构成大规模失踪罪。',
-    '该用户的\"在忙\"经查证为持续性追剧/打游戏/刷视频，属恶意回避行为，判处WiFi永断。',
+    '调查显示该用户的聊天列表里至少17个对话处于"未回复"状态，构成大规模失踪罪。',
+    '该用户的"在忙"经查证为持续性追剧/打游戏/刷视频，属恶意回避行为，判处WiFi永断。',
     '该用户最后一次回复时间为公元2024年，距今已有时空断裂之感，情感考古学家已介入调查。',
     '该用户的输入法被证实完好无损，但选择不使用，属于浪费社会资源，判处键盘被回收。'
   ],
   '养鱼': [
-    '该用户被发现在情感海域非法养殖多条\"鱼\"，经营无证鱼塘，判处鱼塘干涸，鱼尽人亡。',
+    '该用户被发现在情感海域非法养殖多条"鱼"，经营无证鱼塘，判处鱼塘干涸，鱼尽人亡。',
     '嫌疑人的微信列表经查为一处大型水产养殖基地，现已被情感渔政部门依法查封。',
     '该用户擅长同时投喂多线情感饵料，但每条鱼都处于饥饿状态，渔业管理局已吊销其养殖证。',
-    '经DNA检测，该用户鱼塘中的所有\"鱼\"均为备胎品种，营养价值为零，建议全部放生。',
+    '经DNA检测，该用户鱼塘中的所有"鱼"均为备胎品种，营养价值为零，建议全部放生。',
     '该用户的养鱼技术虽已出神入化，但因未取得情感渔业许可证，全部鱼获被没收充公。'
+  ],
+  '忽冷忽热': [
+    '该用户因长期在"热情如火"与"冷漠如冰"之间反复横跳，造成原告情感温控系统彻底失灵，判处恒温监狱终身监禁。',
+    '经检测，该用户的情感温差高达80°C，已构成精神热胀冷缩伤害，判处永久恒温，不得切换模式。',
+    '该用户忽冷忽热的频率已超过空调压缩机，情感节能认证被撤销，判处能耗归零。'
+  ],
+  '已读不回': [
+    '该用户熟练运用"已读"功能后选择性失明，经鉴定其眼球功能完好但良心功能缺失，判处所有消息自动回复"。"。',
+    '该用户的聊天记录显示99+条已读未回，构成数字时代的沉默暴力，判处被AI客服永久服务。',
+    '调查发现该用户看到消息后嘴角上扬但手指坚决不动，属恶意享受被在意感，判处通知权限永久关闭。'
+  ],
+  '借钱不还': [
+    '该用户以"月底就还""下次一定"等话术非法集资，涉案金额虽小但性质恶劣，情感法庭冻结其全部社交信用。',
+    '该用户的借钱记录已构成微型庞氏骗局，每位前任都是上一层投资者，判处被所有支付平台标记为高风险。',
+    '经查该用户开口借钱的熟练度远超还钱意愿，差额部分由情感法庭强制从其人品账户划扣。'
+  ],
+  '暧昧不清': [
+    '该用户长期在"朋友"和"恋人"之间的灰色地带非法经营，涉嫌情感模糊诈骗，判处强制二选一或永久清退。',
+    '该用户擅长发送"你在干嘛"但从不定义关系，其暧昧信号被鉴定为三无产品，情感消费者热线已将其拉黑。',
+    '该用户的暧昧对象数量已触发反垄断调查，情感市场监管局决定拆分其暧昧资产。'
+  ],
+  '精神出轨': [
+    '该用户身体在场但精神已远航，情感法庭GPS定位显示其心已飘至第三人处，判处精神遣返并永久注销签证。',
+    '该用户的想象力在情感领域被滥用为出轨工具，脑内小剧场被依法查封，所有幻想角色被驱逐出境。',
+    '经检测该用户的心跳频率在特定人面前异常加速，构成精神走私罪，判处心率公开透明。'
+  ],
+  '撒谎成瘾': [
+    '该用户将谎言作为日常交流主语言，经统计其真话占比不足5%，情感语言学院决定吊销其发言资格证。',
+    '该用户的谎言密度已达到天文级别，连其本人都无法分辨真假，情感法庭判其与测谎仪终身绑定。',
+    '该用户的口头禅"我发誓"经查均为虚假宣传，情感消费者协会决定在每个谎言上标注星号附免责声明。'
+  ],
+  '抠门到家': [
+    '该用户在感情中的投入产出比被鉴定为1:99，属于情感极度剥削，判处强制请客100顿并不得AA。',
+    '该用户的钱包开启了情感节能模式，连"多喝热水"都嫌费水，情感能源局决定对其征收情感碳排放税。',
+    '经审计，该用户在恋爱期间的支出总额约等于一杯奶茶，但其索取的关怀价值堪比上市公司。'
+  ],
+  '妈宝男/女': [
+    '该用户的决策权经查全权委托给其母亲/父亲，构成情感傀儡罪，判处断奶令立即执行。',
+    '该用户口头禅"我妈说"出现频率已超正常值300倍，情感独立法庭判其从原生家庭剥离并重新人格孵化。',
+    '该用户在约会时至少提及母亲17次/小时，情感法庭认定其尚未完成情感断奶，遣返至幼儿园重修。'
+  ],
+  '情绪勒索': [
+    '该用户以"你是不是不爱我了"为开端实施情感绑架，其勒索话术已被收入刑法案例库作为反面教材。',
+    '该用户擅长将自己的情绪账单强制他人买单，情感消费者权益保护协会决定冻结其情绪信用卡。',
+    '该用户的"我为你付出了这么多"经核实均为基本社交礼仪，虚假宣传罪名成立，禁言终身。'
+  ],
+  '翻旧账': [
+    '该用户拥有过目不忘的记仇能力，其旧账数据库可追溯至公元前，情感法庭决定格式化其记忆硬盘。',
+    '该用户在每次争吵中均能调用三年前的聊天截图作为呈堂证供，其记仇能力被鉴定为超自然现象。',
+    '该用户的旧账索引系统过于发达，连三岁时幼儿园小朋友抢玩具都记录在案，判处记忆清零。'
+  ],
+  '吃软饭': [
+    '该用户长期依靠他人经济供养且心安理得，构成情感寄生虫罪，判处自力更生令并追缴所有软饭所得。',
+    '该用户的AA制理解存在严重偏差——永远理解成"你A我免"，情感纠偏中心将其列为重点改造对象。',
+    '经核算该用户在关系中的经济贡献约为负值，但其胃口贡献遥遥领先，判处强制打工还债。'
+  ],
+  '敷衍大师': [
+    '该用户将"随便""都行""你定"三件套使用至出神入化，但其敷衍态度已被情感质量检测局鉴定为不合格产品。',
+    '该用户的回应模板仅有3种变体，AI检测通过率不足5%，情感图灵测试判定其为低配版聊天机器人。',
+    '该用户在任何对话中都能精准避开所有重点，其敷衍功夫已入无人之境，判处强制参与深度沟通训练营。'
   ]
 };
 
@@ -423,93 +365,66 @@ const HEALING_QUOTES = [
   '最好的报复，是过得更好。'
 ];
 
-// 随机选取
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// ──── DOM 引用 ────
-const $ = (s) => document.querySelector(s);
-const $$ = (s) => document.querySelectorAll(s);
-
-const phaseInput = $('#phase-input');
-const phasePoster = $('#phase-poster');
-const phaseHealing = $('#phase-healing');
-const nameInput = $('#name-input');
-const crimeTags = $('#crime-tags');
-const generateBtn = $('#generate-btn');
+// ──── DOM ────
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const phaseInput = $('#phase-input'), phasePoster = $('#phase-poster'), phaseHealing = $('#phase-healing');
+const nameInput = $('#name-input'), crimeTagsEl = $('#crime-tags'), generateBtn = $('#generate-btn');
 const canvasWrapper = $('#canvas-wrapper');
-const posterCanvas = $('#poster-canvas');
-const fireCanvas = $('#fire-canvas');
-const flameBtn = $('#flame-btn');
-const flameBtnWrap = $('#flame-btn-wrap');
-const flameHint = $('.flame-hint');
-const healQuote = $('#heal-quote');
-const restartBtn = $('#restart-btn');
-const ashCanvas = $('#ash-canvas');
-const audioToggle = $('#audio-toggle');
+const posterCanvas = $('#poster-canvas'), fireCanvas = $('#fire-canvas');
+const flameBtn = $('#flame-btn'), flameBtnWrap = $('#flame-btn-wrap'), flameHint = $('.flame-hint');
+const healQuote = $('#heal-quote'), restartBtn = $('#restart-btn');
+const shareCardCanvas = $('#share-card-canvas'), saveCardBtn = $('#save-card-btn');
+const ctxPoster = posterCanvas.getContext('2d'), ctxFire = fireCanvas.getContext('2d');
 
-const ctxPoster = posterCanvas.getContext('2d');
-const ctxFire = fireCanvas.getContext('2d');
-const ctxAsh = ashCanvas.getContext('2d');
+// ──── 状态 ────
+let selectedCrime = null, currentName = '', currentVerdict = '';
+let sourceCanvas = null, posterThumb = null; // posterThumb: 缩略图 dataURL 用于分享卡片
+let burnProgress = 0, isBurning = false, burnStartTime = 0;
+const BURN_DURATION = 5000, LONG_PRESS_DURATION = 600;
+let pressTimer = null, isPressing = false;
+let crimeLabelCenter = { x: 0, y: 0 }; // 罪名标签中心用于火焰起点
+let typewriterTimer = null, typewriterIndex = 0, typewriterLines = [];
 
-// ──── 应用状态 ────
-let selectedCrime = null;
-let currentName = '';
-let sourceCanvas = null;  // 通缉令原始图层 (OffscreenCanvas)
-let burnProgress = 0;
-let isBurning = false;
-let burnStartTime = 0;
-const BURN_DURATION = 5000;       // 5秒燃烧
-const LONG_PRESS_DURATION = 600;  // 600ms 长按判定
-let pressTimer = null;
-let pressStartTime = 0;
-let isPressing = false;
-
-// ──── Canvas 尺寸管理 ────
+// ──── Canvas 尺寸 ────
 function resizeCanvases() {
-  const wrapper = canvasWrapper;
-  const rect = wrapper.getBoundingClientRect();
-  const w = rect.width;
-  const h = rect.height;
+  const rect = canvasWrapper.getBoundingClientRect();
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const iw = Math.floor(w * dpr);
-  const ih = Math.floor(h * dpr);
-
+  const iw = Math.floor(rect.width * dpr), ih = Math.floor(rect.height * dpr);
   for (const c of [posterCanvas, fireCanvas]) {
     if (c.width !== iw || c.height !== ih) {
-      c.width = iw;
-      c.height = ih;
-      c.getContext('2d').setTransform(1, 0, 0, 1, 0, 0);
+      c.width = iw; c.height = ih;
+      c.getContext('2d').setTransform(1,0,0,1,0,0);
     }
   }
 }
-
-function resizeAshCanvas() {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  ashCanvas.width = window.innerWidth * dpr;
-  ashCanvas.height = window.innerHeight * dpr;
-  ctxAsh.setTransform(1, 0, 0, 1, 0, 0);
-}
-
 window.addEventListener('resize', () => {
   resizeCanvases();
-  resizeAshCanvas();
   if (sourceCanvas && !isBurning) renderPosterToMain();
 });
 
-// ──── 审计阶段管理 ────
 function showPhase(phase) {
   [phaseInput, phasePoster, phaseHealing].forEach(p => p.classList.remove('active'));
   phase.classList.add('active');
 }
 
-// ──── 罪名标签初始化 ────
+// ──── 罪名标签 ────
 function initCrimeTags() {
-  CRIMES.forEach(crime => {
+  crimeTagsEl.innerHTML = '';
+  const crimes = getShuffledCrimes();
+  crimes.forEach(c => {
     const tag = document.createElement('span');
     tag.className = 'crime-tag';
-    tag.textContent = crime;
-    tag.addEventListener('click', () => selectCrime(crime, tag));
-    crimeTags.appendChild(tag);
+    tag.textContent = c.name;
+    if (c.hot) {
+      const badge = document.createElement('span');
+      badge.className = 'hot-badge'; badge.textContent = '热';
+      tag.appendChild(badge);
+    }
+    tag.addEventListener('click', () => selectCrime(c.name, tag));
+    crimeTagsEl.appendChild(tag);
   });
 }
 
@@ -520,230 +435,200 @@ function selectCrime(crime, el) {
   updateGenerateBtn();
 }
 
-// 输入验证
 function updateGenerateBtn() {
   generateBtn.disabled = !(nameInput.value.trim() && selectedCrime);
 }
 nameInput.addEventListener('input', updateGenerateBtn);
 
-// ──── PosterRenderer ────
-function drawPoster(ctx, w, h, name, crime, verdict) {
+// ──── PosterRenderer + 打字机 ────
+function drawPosterStatic(ctx, w, h, name, crime) {
   const pad = w * 0.06;
-
   // 纸张背景
-  ctx.fillStyle = '#f4e1b3';
-  ctx.fillRect(0, 0, w, h);
-
-  // 做旧纹理：随机污渍
+  ctx.fillStyle = '#f4e1b3'; ctx.fillRect(0, 0, w, h);
+  // 做旧
   ctx.save();
   for (let i = 0; i < 60; i++) {
-    const sx = Math.random() * w;
-    const sy = Math.random() * h;
-    const sr = Math.random() * 30 + 5;
+    const sx = Math.random() * w, sy = Math.random() * h, sr = Math.random() * 30 + 5;
     const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
-    grad.addColorStop(0, 'rgba(160,130,80,0.15)');
-    grad.addColorStop(1, 'rgba(160,130,80,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
+    grad.addColorStop(0, 'rgba(160,130,80,0.15)'); grad.addColorStop(1, 'rgba(160,130,80,0)');
+    ctx.fillStyle = grad; ctx.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
   }
-  // 边缘做旧
   const edgeGrad = ctx.createRadialGradient(w/2, h/2, w*0.38, w/2, h/2, w*0.7);
-  edgeGrad.addColorStop(0, 'rgba(0,0,0,0)');
-  edgeGrad.addColorStop(1, 'rgba(80,60,30,0.25)');
-  ctx.fillStyle = edgeGrad;
-  ctx.fillRect(0, 0, w, h);
+  edgeGrad.addColorStop(0, 'rgba(0,0,0,0)'); edgeGrad.addColorStop(1, 'rgba(80,60,30,0.25)');
+  ctx.fillStyle = edgeGrad; ctx.fillRect(0, 0, w, h);
   ctx.restore();
 
   // 三层边框
   const b1 = pad, b2 = pad + 6, b3 = pad + 14;
-  // 外层粗黑线
-  ctx.strokeStyle = '#1a0f0a';
-  ctx.lineWidth = 5;
-  ctx.strokeRect(b1, b1, w - b1*2, h - b1*2);
-  // 中层留白
-  ctx.strokeStyle = '#d4c094';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(b2, b2, w - b2*2, h - b2*2);
-  // 内层金线
-  ctx.strokeStyle = '#b8943e';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(b3, b3, w - b3*2, h - b3*2);
-
-  // 角落十字装饰
+  ctx.strokeStyle = '#1a0f0a'; ctx.lineWidth = 5; ctx.strokeRect(b1, b1, w - b1*2, h - b1*2);
+  ctx.strokeStyle = '#d4c094'; ctx.lineWidth = 1; ctx.strokeRect(b2, b2, w - b2*2, h - b2*2);
+  ctx.strokeStyle = '#b8943e'; ctx.lineWidth = 1.5; ctx.strokeRect(b3, b3, w - b3*2, h - b3*2);
+  // 十字装饰
   const crossSize = 10;
-  const crossPositions = [
-    [b3, b3], [w - b3, b3], [b3, h - b3], [w - b3, h - b3]
-  ];
-  ctx.strokeStyle = '#b8943e';
-  ctx.lineWidth = 1.5;
-  crossPositions.forEach(([cx, cy]) => {
-    ctx.beginPath();
-    ctx.moveTo(cx - crossSize, cy);
-    ctx.lineTo(cx + crossSize, cy);
-    ctx.moveTo(cx, cy - crossSize);
-    ctx.lineTo(cx, cy + crossSize);
-    ctx.stroke();
+  ctx.strokeStyle = '#b8943e'; ctx.lineWidth = 1.5;
+  [[b3,b3],[w-b3,b3],[b3,h-b3],[w-b3,h-b3]].forEach(([cx,cy]) => {
+    ctx.beginPath(); ctx.moveTo(cx-crossSize,cy); ctx.lineTo(cx+crossSize,cy);
+    ctx.moveTo(cx,cy-crossSize); ctx.lineTo(cx,cy+crossSize); ctx.stroke();
   });
 
-  const cx = w / 2;
-  let cy = b3 + 30;
-
-  // 标题：情感通缉令
+  const cx = w/2; let cy = b3 + 30;
   ctx.fillStyle = '#1a0f0a';
   ctx.font = `bold ${w*0.09}px 'STKaiti','KaiTi','楷体','SimSun',serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText('情感通缉令', cx, cy);
+  ctx.textAlign = 'center'; ctx.fillText('情感通缉令', cx, cy);
   cy += h * 0.045;
 
-  // 副标题 WANTED
   ctx.fillStyle = '#8b1a1a';
   ctx.font = `bold ${w*0.11}px 'Times New Roman','STSong','SimSun',serif`;
   ctx.fillText('★ WANTED ★', cx, cy);
   cy += h * 0.035;
 
-  // 装饰线
-  ctx.strokeStyle = '#b8943e';
-  ctx.lineWidth = 0.8;
-  const lineY = cy;
-  ctx.beginPath();
-  ctx.moveTo(w * 0.2, lineY); ctx.lineTo(w * 0.8, lineY);
-  ctx.stroke();
+  ctx.strokeStyle = '#b8943e'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(w*0.2, cy); ctx.lineTo(w*0.8, cy); ctx.stroke();
   cy += h * 0.04;
 
-  // 嫌疑人肖像区
-  const portraitSize = h * 0.18;
-  const portraitY = cy;
-  ctx.strokeStyle = '#8b1a1a';
-  ctx.lineWidth = 1;
-  ctx.setLineDash([4, 3]);
+  // 肖像区
+  const portraitSize = h * 0.18, portraitY = cy;
+  ctx.strokeStyle = '#8b1a1a'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
   ctx.strokeRect(cx - portraitSize*0.55, portraitY, portraitSize*1.1, portraitSize);
   ctx.setLineDash([]);
-
-  // 简笔画人物剪影
   const px = cx, py = portraitY + portraitSize * 0.3;
-  ctx.fillStyle = '#1a0f0a';
-  ctx.beginPath();
-  ctx.arc(px, py, portraitSize*0.12, 0, Math.PI*2);        // 头
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(px, py + portraitSize*0.13);
-  ctx.lineTo(px, py + portraitSize*0.42);                    // 身体
-  ctx.strokeStyle = '#1a0f0a';
-  ctx.lineWidth = 2.5;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(px - portraitSize*0.15, py + portraitSize*0.22);
-  ctx.lineTo(px + portraitSize*0.15, py + portraitSize*0.22); // 手臂
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(px, py + portraitSize*0.42);
-  ctx.lineTo(px - portraitSize*0.12, py + portraitSize*0.65); // 左腿
-  ctx.moveTo(px, py + portraitSize*0.42);
-  ctx.lineTo(px + portraitSize*0.12, py + portraitSize*0.65); // 右腿
-  ctx.stroke();
+  ctx.fillStyle = '#1a0f0a'; ctx.beginPath(); ctx.arc(px, py, portraitSize*0.12, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#1a0f0a'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(px, py+portraitSize*0.13); ctx.lineTo(px, py+portraitSize*0.42); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(px-portraitSize*0.15, py+portraitSize*0.22); ctx.lineTo(px+portraitSize*0.15, py+portraitSize*0.22); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(px, py+portraitSize*0.42); ctx.lineTo(px-portraitSize*0.12, py+portraitSize*0.65);
+  ctx.moveTo(px, py+portraitSize*0.42); ctx.lineTo(px+portraitSize*0.12, py+portraitSize*0.65); ctx.stroke();
 
-  // "嫌疑人"标注
-  ctx.fillStyle = '#8b1a1a';
-  ctx.font = `${w*0.035}px 'STKaiti','KaiTi','楷体',serif`;
-  ctx.textAlign = 'center';
+  ctx.fillStyle = '#8b1a1a'; ctx.font = `${w*0.035}px 'STKaiti','KaiTi','楷体',serif`;
   ctx.fillText('【 嫌疑人 】', cx, portraitY + portraitSize + h*0.03);
   cy = portraitY + portraitSize + h * 0.08;
 
-  // 姓名
   ctx.fillStyle = '#1a0f0a';
   ctx.font = `bold ${w*0.08}px 'STKaiti','KaiTi','楷体','SimSun',serif`;
   ctx.fillText(name, cx, cy);
   cy += h * 0.05;
 
-  // 罪名标签
+  // 罪名标签 + 记录位置
   const crimeW = ctx.measureText(crime).width + 20;
   const crimeH = h * 0.04;
-  ctx.fillStyle = '#1a0f0a';
-  ctx.fillRect(cx - crimeW/2, cy - crimeH*0.7, crimeW, crimeH);
+  const crimeLabelY = cy;
+  ctx.fillStyle = '#1a0f0a'; ctx.fillRect(cx - crimeW/2, cy - crimeH*0.7, crimeW, crimeH);
   ctx.fillStyle = '#f4e1b3';
   ctx.font = `bold ${w*0.038}px 'PingFang SC','Microsoft YaHei',sans-serif`;
   ctx.fillText('罪', cx - crimeW*0.28, cy);
   ctx.fillText(crime, cx + crimeW * 0.12, cy);
+  // 返回罪名标签中心位置（Canvas 坐标系）
+  crimeLabelCenter = { x: cx, y: cy + crimeH * 0.15 };
   cy += h * 0.06;
 
-  // 装饰线
-  ctx.strokeStyle = '#b8943e';
-  ctx.lineWidth = 0.6;
-  const lineY2 = cy;
-  ctx.beginPath();
-  ctx.moveTo(w * 0.15, lineY2); ctx.lineTo(w * 0.85, lineY2);
-  ctx.stroke();
-  cy += h * 0.04;
+  ctx.strokeStyle = '#b8943e'; ctx.lineWidth = 0.6;
+  ctx.beginPath(); ctx.moveTo(w*0.15, cy); ctx.lineTo(w*0.85, cy); ctx.stroke();
+  // 返回判决文字的起始 y
+  return cy + h * 0.04;
+}
 
-  // 判决文案（横排，可换行）
-  ctx.fillStyle = '#1a0f0a';
-  ctx.font = `${w*0.032}px 'STSong','SimSun','宋体',serif`;
-  const maxTextWidth = w * 0.72;
-  const words = verdict.split('');
-  let line = '';
-  const lines = [];
-  for (const ch of words) {
-    const testLine = line + ch;
-    if (ctx.measureText(testLine).width > maxTextWidth && line.length > 0) {
-      lines.push(line);
-      line = ch;
-    } else {
-      line = testLine;
-    }
+function wrapText(ctx, text, maxWidth) {
+  const lines = []; let line = '';
+  for (const ch of text) {
+    const test = line + ch;
+    if (ctx.measureText(test).width > maxWidth && line.length > 0) { lines.push(line); line = ch; }
+    else line = test;
   }
   if (line) lines.push(line);
-  const lineHeight = h * 0.042;
-  const textStartY = cy;
-  lines.forEach((l, i) => {
-    ctx.fillText(l, cx, textStartY + i * lineHeight);
-  });
-  cy = textStartY + lines.length * lineHeight + h * 0.03;
+  return lines;
+}
 
-  // 装饰线
-  ctx.strokeStyle = '#b8943e';
-  ctx.lineWidth = 0.6;
-  const lineY3 = cy;
-  ctx.beginPath();
-  ctx.moveTo(w * 0.2, lineY3); ctx.lineTo(w * 0.8, lineY3);
-  ctx.stroke();
-  cy += h * 0.03;
+function drawPosterWithTypewriter(ctx, w, h, name, crime, verdict, charCount) {
+  // 重绘整张
+  drawPosterStatic(ctx, w, h, name, crime);
 
-  // 底部文字
-  ctx.fillStyle = '#8b1a1a';
-  ctx.font = `bold ${w*0.033}px 'STKaiti','KaiTi','楷体',serif`;
-  ctx.fillText('情感国际法庭 · 终审判决', cx, cy);
-  cy += h * 0.032;
-  ctx.font = `${w*0.026}px 'STKaiti','KaiTi','楷体',serif`;
-  ctx.fillText('不得上诉 · 立即执行', cx, cy);
+  const verdictY = h * 0.06 + crimeLabelCenter.y + h * 0.06 + h * 0.04;
+  // 重新计算判决位置（与 drawPosterStatic 一致）
+  const afterCrimeY = crimeLabelCenter.y + h * 0.06;
+  const afterLineY = afterCrimeY + h * 0.04;
+  const textStartY = afterLineY;
 
-  // 红色印章
-  const stampX = w - b3 - w*0.1;
-  const stampY = h - b3 - h*0.1;
-  const stampR = w * 0.11;
-  ctx.save();
-  ctx.translate(stampX, stampY);
-  ctx.rotate(-0.3);
-  ctx.fillStyle = 'rgba(180,40,40,0.75)';
-  ctx.beginPath();
-  ctx.arc(0, 0, stampR, 0, Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(244,225,179,0.85)';
-  ctx.font = `bold ${stampR*0.7}px 'STKaiti','KaiTi','楷体',serif`;
+  ctx.fillStyle = '#1a0f0a';
+  ctx.font = `${w*0.032}px 'STSong','SimSun','宋体',serif`;
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('已判', 0, 0);
-  ctx.restore();
+  const maxTextWidth = w * 0.72;
+  const allLines = wrapText(ctx, verdict, maxTextWidth);
+  const lineHeight = h * 0.042;
+
+  let charsRemaining = charCount;
+  let drawnLines = 0;
+  for (let i = 0; i < allLines.length; i++) {
+    if (charsRemaining <= 0) break;
+    const line = allLines[i];
+    const showChars = Math.min(charsRemaining, line.length);
+    ctx.fillText(line.substring(0, showChars), w/2, textStartY + i * lineHeight);
+    charsRemaining -= showChars;
+    drawnLines++;
+  }
+
+  // 未完成则绘制度量线后面的元素
+  let totalChars = 0;
+  for (const l of allLines) totalChars += l.length;
+  if (charCount >= totalChars) {
+    // 完全显示，绘制后续元素
+    const afterVerdict = textStartY + allLines.length * lineHeight + h * 0.03;
+    let cy = afterVerdict;
+    ctx.strokeStyle = '#b8943e'; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.moveTo(w*0.2, cy); ctx.lineTo(w*0.8, cy); ctx.stroke();
+    cy += h * 0.03;
+    ctx.fillStyle = '#8b1a1a';
+    ctx.font = `bold ${w*0.033}px 'STKaiti','KaiTi','楷体',serif`;
+    ctx.fillText('情感国际法庭 · 终审判决', w/2, cy);
+    cy += h * 0.032;
+    ctx.font = `${w*0.026}px 'STKaiti','KaiTi','楷体',serif`;
+    ctx.fillText('不得上诉 · 立即执行', w/2, cy);
+    // 印章
+    const b3 = w * 0.06 + 14;
+    const stampX = w - b3 - w*0.1, stampY = h - b3 - h*0.1;
+    const stampR = w * 0.11;
+    ctx.save(); ctx.translate(stampX, stampY); ctx.rotate(-0.3);
+    ctx.fillStyle = 'rgba(180,40,40,0.75)'; ctx.beginPath(); ctx.arc(0,0,stampR,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(244,225,179,0.85)';
+    ctx.font = `bold ${stampR*0.7}px 'STKaiti','KaiTi','楷体',serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('已判', 0, 0);
+    ctx.restore();
+  }
+
+  return allLines;
 }
 
 function renderPosterToSource() {
   resizeCanvases();
-  const w = posterCanvas.width;
-  const h = posterCanvas.height;
+  const w = posterCanvas.width, h = posterCanvas.height;
   sourceCanvas = new OffscreenCanvas(w, h);
   const ctx = sourceCanvas.getContext('2d');
-  const verdict = pick(VERDICTS[selectedCrime]);
-  drawPoster(ctx, w, h, currentName, selectedCrime, verdict);
-  renderPosterToMain();
+  currentVerdict = pick(VERDICTS[selectedCrime] || VERDICTS['冷暴力']);
+  // 完整绘制到 source
+  drawPosterWithTypewriter(ctx, w, h, currentName, selectedCrime, currentVerdict, Infinity);
+  // 保存缩略图用于分享卡片
+  posterThumb = sourceCanvas.convertToBlob({ type:'image/png' }).then(b => URL.createObjectURL(b));
+  // 启动打字机动效 —— 先在主 Canvas 上逐字展示
+  startTypewriter(w, h);
+}
+
+function startTypewriter(w, h) {
+  typewriterLines = wrapText(ctxPoster, currentVerdict, w * 0.72);
+  let totalChars = 0;
+  for (const l of typewriterLines) totalChars += l.length;
+  typewriterIndex = 0;
+  if (typewriterTimer) clearInterval(typewriterTimer);
+
+  typewriterTimer = setInterval(() => {
+    typewriterIndex += Math.ceil(totalChars / 50); // ~50步完成，约1.5秒
+    audioEngine.playTick();
+    if (typewriterIndex >= totalChars) {
+      typewriterIndex = totalChars;
+      clearInterval(typewriterTimer);
+      typewriterTimer = null;
+    }
+    ctxPoster.clearRect(0, 0, w, h);
+    drawPosterWithTypewriter(ctxPoster, w, h, currentName, selectedCrime, currentVerdict, typewriterIndex);
+  }, 60);
 }
 
 function renderPosterToMain() {
@@ -752,64 +637,33 @@ function renderPosterToMain() {
   ctxPoster.drawImage(sourceCanvas, 0, 0);
 }
 
-// ──── 简化 FBM 噪声 ────
-function hash(x, y) {
-  let h = x * 374761393 + y * 668265263 + 1274126177;
-  h = (h ^ (h >>> 13)) * 1274126177;
-  return (h ^ (h >>> 16)) / 4294967296;
+// ──── FBM 噪声 ────
+function hash(x,y) { let h=x*374761393+y*668265263+1274126177; h=(h^(h>>>13))*1274126177; return (h^(h>>>16))/4294967296; }
+function smoothNoise(x,y) {
+  const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy;
+  const sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);
+  const n00=hash(ix,iy),n10=hash(ix+1,iy),n01=hash(ix,iy+1),n11=hash(ix+1,iy+1);
+  return n00+(n10-n00)*sx+(n01-n00)*sy+((n11-n01)-(n10-n00))*sx*sy;
 }
-
-function smoothNoise(x, y) {
-  const ix = Math.floor(x), iy = Math.floor(y);
-  const fx = x - ix, fy = y - iy;
-  const sx = fx * fx * (3 - 2 * fx);
-  const sy = fy * fy * (3 - 2 * fy);
-  const n00 = hash(ix, iy), n10 = hash(ix + 1, iy);
-  const n01 = hash(ix, iy + 1), n11 = hash(ix + 1, iy + 1);
-  const nx0 = n00 + (n10 - n00) * sx;
-  const nx1 = n01 + (n11 - n01) * sx;
-  return nx0 + (nx1 - nx0) * sy;
-}
-
-function fbm(x, y, octaves = 3) {
-  let value = 0, amp = 1, freq = 1, maxVal = 0;
-  for (let i = 0; i < octaves; i++) {
-    value += amp * smoothNoise(x * freq, y * freq);
-    maxVal += amp;
-    amp *= 0.5;
-    freq *= 2;
-  }
-  return value / maxVal;
-}
+function fbm(x,y,o=3) { let v=0,a=1,f=1,m=0; for(let i=0;i<o;i++){v+=a*smoothNoise(x*f,y*f);m+=a;a*=0.5;f*=2;} return v/m; }
 
 // ──── ParticleSystem ────
-const MAX_PARTICLES = 350;
+const MAX_PARTICLES = 400;
 const particlePool = [];
 
 function createParticle(x, y, type = 'fire') {
-  // 复用或新建
   let p = particlePool.find(p => !p.alive);
-  if (!p) {
-    p = {};
-    particlePool.push(p);
-  }
-  p.alive = true;
-  p.x = x;
-  p.y = y;
-  p.type = type;
+  if (!p) { p = {}; particlePool.push(p); }
+  p.alive = true; p.x = x; p.y = y; p.type = type; p.convergeTime = 0;
   if (type === 'fire') {
-    p.vx = (Math.random() - 0.5) * 40;
-    p.vy = -80 - Math.random() * 140;
-    p.life = 0.3 + Math.random() * 0.9;
-    p.maxLife = p.life;
-    p.size = 2 + Math.random() * 5;
-  } else {
-    // ash
-    p.vx = (Math.random() - 0.5) * 20;
-    p.vy = -15 - Math.random() * 35;
-    p.life = 1.5 + Math.random() * 2.5;
-    p.maxLife = p.life;
-    p.size = 1.5 + Math.random() * 3;
+    p.vx = (Math.random()-0.5)*40; p.vy = -80-Math.random()*140;
+    p.life = 0.3+Math.random()*0.9; p.maxLife = p.life; p.size = 2+Math.random()*5;
+  } else if (type === 'ash') {
+    p.vx = (Math.random()-0.5)*20; p.vy = -15-Math.random()*35;
+    p.life = 1.5+Math.random()*2.5; p.maxLife = p.life; p.size = 1.5+Math.random()*3;
+  } else if (type === 'converge') {
+    p.vx = (Math.random()-0.5)*10; p.vy = -20-Math.random()*30;
+    p.life = 2+Math.random()*2; p.maxLife = p.life; p.size = 2+Math.random()*4;
   }
   return p;
 }
@@ -817,55 +671,48 @@ function createParticle(x, y, type = 'fire') {
 function updateParticles(dt) {
   for (const p of particlePool) {
     if (!p.alive) continue;
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    p.life -= dt;
-    // 火焰抖动
-    if (p.type === 'fire') {
-      p.vx += (Math.random() - 0.5) * 60 * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+    if (p.type === 'fire') p.vx += (Math.random()-0.5)*60*dt;
+    if (p.type === 'converge') {
+      p.convergeTime += dt;
+      // 向光点汇聚
+      const targetX = crimeLabelCenter.x, targetY = crimeLabelCenter.y - 60;
+      const t = Math.min(p.convergeTime / 1.5, 1);
+      p.x += (targetX - p.x) * 2 * dt;
+      p.y += (targetY - p.y) * 2 * dt;
+      p.size = p.size * (1 - t * 0.3);
     }
     if (p.life <= 0) p.alive = false;
   }
 }
 
 function getFireColor(ratio) {
-  // ratio = life / maxLife, 1=最亮, 0=熄灭
-  if (ratio > 0.7) {
-    const t = (ratio - 0.7) / 0.3;
-    // 白黄 -> 橙
-    const r = 255, g = Math.floor(255 - t * 125), b = Math.floor(240 - t * 200);
-    return `rgb(${r},${g},${b})`;
-  } else if (ratio > 0.35) {
-    const t = (ratio - 0.35) / 0.35;
-    // 橙 -> 红
-    const r = 255, g = Math.floor(130 - t * 100), b = Math.floor(40 * (1 - t));
-    return `rgb(${r},${g},${b})`;
-  } else {
-    // 红 -> 暗红 -> 透明
-    const a = ratio / 0.35;
-    return `rgba(180,${Math.floor(15*a)},${Math.floor(5*a)},${a})`;
-  }
+  if (ratio > 0.7) { const t=(ratio-0.7)/0.3; return `rgb(255,${Math.floor(255-t*125)},${Math.floor(240-t*200)})`; }
+  else if (ratio > 0.35) { const t=(ratio-0.35)/0.35; return `rgb(255,${Math.floor(130-t*100)},${Math.floor(40*(1-t))})`; }
+  else { const a=ratio/0.35; return `rgba(180,${Math.floor(15*a)},${Math.floor(5*a)},${a})`; }
 }
 
-function renderParticles(ctx, canvasW, canvasH) {
-  ctx.clearRect(0, 0, canvasW, canvasH);
+function renderParticles(ctx, cw, ch) {
+  ctx.clearRect(0, 0, cw, ch);
   ctx.globalCompositeOperation = 'lighter';
   for (const p of particlePool) {
     if (!p.alive) continue;
     const ratio = p.life / p.maxLife;
     if (p.type === 'fire') {
       ctx.fillStyle = getFireColor(ratio);
-      ctx.shadowColor = ratio > 0.5 ? 'rgba(255,150,30,0.6)' : 'rgba(255,50,0,0.3)';
-      ctx.shadowBlur = p.size * 2.5;
+      ctx.shadowColor = ratio>0.5 ? 'rgba(255,150,30,0.6)' : 'rgba(255,50,0,0.3)';
+      ctx.shadowBlur = p.size*2.5;
+    } else if (p.type === 'converge') {
+      ctx.fillStyle = `rgba(255,220,180,${ratio})`;
+      ctx.shadowColor = 'rgba(255,200,150,0.8)';
+      ctx.shadowBlur = p.size*4;
     } else {
       const a = ratio;
       ctx.fillStyle = `rgba(170,160,150,${a})`;
       ctx.shadowColor = 'rgba(180,170,160,0.3)';
-      ctx.shadowBlur = p.size * 1.5;
+      ctx.shadowBlur = p.size*1.5;
     }
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * ratio, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size*ratio, 0, Math.PI*2); ctx.fill();
   }
   ctx.shadowBlur = 0;
   ctx.globalCompositeOperation = 'source-over';
@@ -873,243 +720,236 @@ function renderParticles(ctx, canvasW, canvasH) {
 
 // ──── BurnController ────
 const BLOCK_SIZE = 4;
-let burnCenterX = 0, burnCenterY = 0;
-let maxBurnRadius = 0;
-let burnedBlocks = null; // Set of "x,y" strings
-let frameCount = 0;
+let maxBurnRadius = 0, burnedBlocks = null, frameCount = 0;
+let convergePoint = null;
 
 function initBurn() {
-  const w = posterCanvas.width;
-  const h = posterCanvas.height;
-  burnCenterX = w / 2;
-  burnCenterY = h * 0.45;
+  const w = posterCanvas.width, h = posterCanvas.height;
   maxBurnRadius = Math.sqrt(w*w + h*h) * 0.65;
-  burnedBlocks = new Set();
-  frameCount = 0;
+  burnedBlocks = new Set(); frameCount = 0;
+  // 光点汇聚位置（罪名标签上方）
+  convergePoint = { x: crimeLabelCenter.x, y: crimeLabelCenter.y - 30 };
 }
 
 function updateBurn(dt) {
   if (!isBurning) return;
   frameCount++;
-
-  // 燃烧进度从长按完成后的时间开始
   const elapsed = performance.now() - burnStartTime;
   burnProgress = Math.min(elapsed / BURN_DURATION, 1.0);
-
-  const w = posterCanvas.width;
-  const h = posterCanvas.height;
-
-  // 计算燃烧半径
+  const w = posterCanvas.width, h = posterCanvas.height;
+  // 燃烧从罪名标签处开始
+  const burnCX = crimeLabelCenter.x, burnCY = crimeLabelCenter.y;
   const baseRadius = burnProgress * maxBurnRadius;
   const noiseScale = burnProgress > 0.05 ? 30 : 5;
-
-  // 更新燃烧遮罩
-  const cols = Math.ceil(w / BLOCK_SIZE);
-  const rows = Math.ceil(h / BLOCK_SIZE);
+  const cols = Math.ceil(w / BLOCK_SIZE), rows = Math.ceil(h / BLOCK_SIZE);
 
   for (let by = 0; by < rows; by++) {
     for (let bx = 0; bx < cols; bx++) {
       const key = `${bx},${by}`;
       if (burnedBlocks.has(key)) continue;
-
-      const cx = bx * BLOCK_SIZE + BLOCK_SIZE / 2;
-      const cy = by * BLOCK_SIZE + BLOCK_SIZE / 2;
-      const dist = Math.sqrt((cx - burnCenterX)**2 + (cy - burnCenterY)**2);
-      const noise = fbm(cx * 0.03, cy * 0.03 + burnProgress * 2, 3) * noiseScale;
-      const jitter = (Math.random() - 0.5) * 8;
-      const organicRadius = baseRadius + noise + jitter;
-
-      if (dist < organicRadius) {
-        burnedBlocks.add(key);
-      }
+      const bpx = bx*BLOCK_SIZE+BLOCK_SIZE/2, bpy = by*BLOCK_SIZE+BLOCK_SIZE/2;
+      const dist = Math.sqrt((bpx-burnCX)**2 + (bpy-burnCY)**2);
+      const noise = fbm(bpx*0.03, bpy*0.03+burnProgress*2, 3) * noiseScale;
+      const jitter = (Math.random()-0.5)*8;
+      if (dist < baseRadius + noise + jitter) burnedBlocks.add(key);
     }
   }
 
-  // 渲染：先恢复未燃烧区域
   ctxPoster.clearRect(0, 0, w, h);
   ctxPoster.drawImage(sourceCanvas, 0, 0);
-
-  // 逐块擦除已燃烧区域
   for (const key of burnedBlocks) {
     const [bx, by] = key.split(',').map(Number);
-    const x = bx * BLOCK_SIZE;
-    const y = by * BLOCK_SIZE;
-    ctxPoster.clearRect(x, y, BLOCK_SIZE, BLOCK_SIZE);
+    ctxPoster.clearRect(bx*BLOCK_SIZE, by*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
   }
 
-  // 燃烧边缘 glow
   if (burnProgress < 0.95) {
-    const edgeGlow = ctxPoster.createRadialGradient(burnCenterX, burnCenterY, baseRadius * 0.85, burnCenterX, burnCenterY, baseRadius + 15);
-    edgeGlow.addColorStop(0, 'rgba(0,0,0,0)');
-    edgeGlow.addColorStop(0.5, 'rgba(180,40,10,0.25)');
-    edgeGlow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctxPoster.save();
-    ctxPoster.globalCompositeOperation = 'source-over';
-    ctxPoster.fillStyle = edgeGlow;
-    ctxPoster.fillRect(0, 0, w, h);
-    ctxPoster.restore();
+    const edgeGlow = ctxPoster.createRadialGradient(burnCX, burnCY, baseRadius*0.85, burnCX, burnCY, baseRadius+15);
+    edgeGlow.addColorStop(0,'rgba(0,0,0,0)'); edgeGlow.addColorStop(0.5,'rgba(180,40,10,0.25)'); edgeGlow.addColorStop(1,'rgba(0,0,0,0)');
+    ctxPoster.fillStyle = edgeGlow; ctxPoster.fillRect(0,0,w,h);
   }
 
-  // 在燃烧边缘发射火焰粒子
   if (burnProgress < 0.9) {
-    const edgeParticles = Math.floor((1 - burnProgress) * 60) + 10;
-    for (let i = 0; i < edgeParticles; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const r = baseRadius + (Math.random() - 0.5) * 20;
-      const px = burnCenterX + Math.cos(angle) * r;
-      const py = burnCenterY + Math.sin(angle) * r;
-      // 只在画布范围内生成
-      if (px > 0 && px < w && py > 0 && py < h) {
-        createParticle(px, py, 'fire');
-      }
+    const n = Math.floor((1-burnProgress)*60)+10;
+    for (let i=0;i<n;i++) {
+      const angle=Math.random()*Math.PI*2, r=baseRadius+(Math.random()-0.5)*20;
+      const px=burnCX+Math.cos(angle)*r, py=burnCY+Math.sin(angle)*r;
+      if (px>0&&px<w&&py>0&&py<h) createParticle(px,py,'fire');
     }
   }
-
-  // 灰烬阶段
   if (burnProgress > 0.7) {
-    const ashCount = Math.floor((burnProgress - 0.7) * 80) + 2;
-    for (let i = 0; i < ashCount; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const r = baseRadius * (0.8 + Math.random() * 0.4);
-      const px = burnCenterX + Math.cos(angle) * r;
-      const py = burnCenterY + Math.sin(angle) * r;
-      if (px > 0 && px < w && py > 0 && py < h) {
-        createParticle(px, py, 'ash');
-      }
+    const n = Math.floor((burnProgress-0.7)*80)+2;
+    for (let i=0;i<n;i++) {
+      const angle=Math.random()*Math.PI*2, r=baseRadius*(0.8+Math.random()*0.4);
+      const px=burnCX+Math.cos(angle)*r, py=burnCY+Math.sin(angle)*r;
+      if (px>0&&px<w&&py>0&&py<h) createParticle(px,py,'ash');
     }
   }
-
-  // 燃烧完成
-  if (burnProgress >= 1.0) {
-    finishBurning();
-  }
+  if (burnProgress >= 1.0) finishBurning();
 }
 
 function renderBurnFrame() {
-  const w = fireCanvas.width;
-  const h = fireCanvas.height;
-  renderParticles(ctxFire, w, h);
+  renderParticles(ctxFire, fireCanvas.width, fireCanvas.height);
 }
 
 function finishBurning() {
   isBurning = false;
-  // 全部擦除
   ctxPoster.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
-  // 转换为纯灰烬
+  audioEngine.stopFire();
+  // 将所有火焰粒子转为灰烬，自然飘散
+  const burnCX = crimeLabelCenter.x, burnCY = crimeLabelCenter.y;
   for (const p of particlePool) {
     if (p.alive && p.type === 'fire') {
-      p.type = 'ash';
-      p.life = 1 + Math.random() * 2;
-      p.maxLife = p.life;
-      p.vy = -10 - Math.random() * 40;
-      p.vx = (Math.random() - 0.5) * 30;
-      p.size = 1.5 + Math.random() * 3;
+      p.type = 'ash'; p.vx = (Math.random()-0.5)*25; p.vy = -20-Math.random()*50;
+      p.life = 1.2+Math.random()*2.5; p.maxLife = p.life; p.size = 2+Math.random()*4;
     }
   }
-  // 额外灰烬
-  const w = posterCanvas.width;
-  const h = posterCanvas.height;
-  for (let i = 0; i < 80; i++) {
-    const px = Math.random() * w;
-    const py = Math.random() * h;
-    createParticle(px, py, 'ash');
+  // 额外灰烬粒子从燃烧区域升起
+  for (let i = 0; i < 70; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const r = Math.random() * maxBurnRadius * 0.8;
+    createParticle(burnCX + Math.cos(angle)*r, burnCY + Math.sin(angle)*r, 'ash');
   }
-  // 渐隐火焰按钮
   flameBtnWrap.style.opacity = '0';
   flameBtnWrap.style.transition = 'opacity 0.8s';
-
-  // 启动治愈阶段计时
-  setTimeout(showHealingPhase, 3000);
+  setTimeout(showHealingPhase, 2800);
 }
 
 function showHealingPhase() {
-  // 清理粒子
-  for (const p of particlePool) p.alive = false;
-  ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
-
-  showPhase(phaseHealing);
-  healQuote.textContent = pick(HEALING_QUOTES);
-  healQuote.style.animation = 'none';
-  healQuote.offsetHeight; // reflow
-  healQuote.style.animation = 'fadeInUp 1s ease-out';
+  // 播放治愈钟声
+  audioEngine.playBell();
+  // 渐隐灰烬
+  for (const p of particlePool) {
+    if (p.alive) p.life = Math.min(p.life, 0.6);
+  }
+  setTimeout(() => {
+    for (const p of particlePool) p.alive = false;
+    ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+    showPhase(phaseHealing);
+    healQuote.textContent = pick(HEALING_QUOTES);
+    healQuote.style.animation = 'none'; healQuote.offsetHeight;
+    healQuote.style.animation = 'fadeInUp 1s ease-out';
+    setTimeout(generateShareCard, 500);
+  }, 700);
 }
 
+// ──── 分享卡片 ────
+async function generateShareCard() {
+  const sc = shareCardCanvas;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cardW = 800, cardH = 500;
+  sc.width = cardW; sc.height = cardH;
+  sc.style.width = Math.min(400, window.innerWidth-40) + 'px';
+  sc.style.height = 'auto';
+  sc.style.display = 'block';
+  saveCardBtn.style.display = 'block';
+
+  const ctx = sc.getContext('2d');
+  // 暗黑卡片底
+  const grad = ctx.createLinearGradient(0, 0, cardW, cardH);
+  grad.addColorStop(0, '#1a0a0a'); grad.addColorStop(1, '#0a0a0a');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, cardW, cardH);
+
+  // 通缉令缩略图（左侧）
+  if (sourceCanvas) {
+    const thumbW = 180, thumbH = thumbW / 0.72;
+    ctx.save();
+    ctx.shadowColor = 'rgba(255,94,19,0.5)'; ctx.shadowBlur = 20;
+    ctx.drawImage(sourceCanvas, 30, (cardH-thumbH)/2, thumbW, thumbH);
+    ctx.restore();
+  }
+
+  // 右侧文字
+  ctx.fillStyle = '#c8c0b0';
+  ctx.font = 'bold 28px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('前任焚烧炉', 240, 100);
+  ctx.font = '14px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillStyle = '#6a6558';
+  ctx.fillText('EX INCINERATOR', 240, 130);
+
+  ctx.fillStyle = '#ff5e13';
+  ctx.font = 'bold 22px "STKaiti","KaiTi","楷体",serif';
+  ctx.fillText(`被告人：${currentName}`, 240, 180);
+  ctx.fillStyle = '#b8943e';
+  ctx.font = '18px "STKaiti","KaiTi","楷体",serif';
+  ctx.fillText(`罪名：${selectedCrime}`, 240, 215);
+
+  // 判决摘要
+  ctx.fillStyle = '#c8c0b0';
+  ctx.font = '15px "STSong","SimSun","宋体",serif';
+  const shortVerdict = currentVerdict.length > 60 ? currentVerdict.substring(0,60)+'...' : currentVerdict;
+  const vLines = wrapText(ctx, shortVerdict, 320);
+  vLines.forEach((l, i) => ctx.fillText(l, 240, 270 + i*24));
+
+  // 底部提示
+  ctx.fillStyle = '#7ec8a0';
+  ctx.font = '16px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillText('扫码审判你的前任 →', 240, 390);
+
+  // 加载二维码
+  try {
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://github.com/Jackson-da/ex_incinerator`;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    await new Promise((resolve, reject) => {
+      img.onload = resolve; img.onerror = reject;
+      img.src = qrUrl;
+    });
+    ctx.drawImage(img, 240, 340, 100, 100);
+  } catch(e) {
+    ctx.fillStyle = '#6a6558';
+    ctx.font = '12px monospace';
+    ctx.fillText('github.com/Jackson-da/ex_incinerator', 240, 400);
+  }
+}
+
+saveCardBtn.addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = `前任焚烧炉_${currentName}_${selectedCrime}.png`;
+  link.href = shareCardCanvas.toDataURL('image/png');
+  link.click();
+});
+
 // ──── 动画循环 ────
-let lastTime = 0;
-let animFrameId = null;
+let lastTime = 0, animFrameId = null;
 
 function animate(timestamp) {
   if (!lastTime) lastTime = timestamp;
   let dt = (timestamp - lastTime) / 1000;
-  if (dt > 0.1) dt = 0.1; // 防止大帧跳跃
+  if (dt > 0.1) dt = 0.1;
   lastTime = timestamp;
 
-  if (isBurning) {
-    updateBurn(dt);
-    renderBurnFrame();
-  } else if (burnedBlocks && burnedBlocks.size > 0) {
-    // 灰烬飘散阶段（燃烧已结束，但粒子仍在飘）
-    renderBurnFrame();
-  }
-
+  if (isBurning) { updateBurn(dt); renderBurnFrame(); }
+  else if (burnedBlocks && burnedBlocks.size > 0) { renderBurnFrame(); }
   updateParticles(dt);
   animFrameId = requestAnimationFrame(animate);
 }
 
-// ──── 长按交互 ────
+// ──── 长按 ────
 function onPointerDown(e) {
   if (isBurning || burnProgress >= 1) return;
-  e.preventDefault();
-  isPressing = true;
-  pressStartTime = performance.now();
-  flameBtn.classList.add('pressing');
-  flameHint.textContent = '继续按住...';
-
-  // 进度环动画
+  e.preventDefault(); isPressing = true;
+  flameBtn.classList.add('pressing'); flameHint.textContent = '继续按住...';
   const circle = flameBtn.querySelector('.progress-ring circle');
   const circumference = 2 * Math.PI * 52;
   circle.setAttribute('stroke-dasharray', circumference);
   circle.setAttribute('stroke-dashoffset', circumference);
   circle.style.transition = `stroke-dashoffset ${LONG_PRESS_DURATION}ms linear`;
-  requestAnimationFrame(() => {
-    circle.setAttribute('stroke-dashoffset', '0');
-  });
-
-  // 600ms 后触发燃烧
-  pressTimer = setTimeout(() => {
-    if (isPressing) {
-      startBurning();
-    }
-  }, LONG_PRESS_DURATION);
+  requestAnimationFrame(() => circle.setAttribute('stroke-dashoffset', '0'));
+  pressTimer = setTimeout(() => { if (isPressing) startBurning(); }, LONG_PRESS_DURATION);
 }
 
-function onPointerUp(e) {
-  e.preventDefault();
+function resetPress() {
   if (!isPressing) return;
-  isPressing = false;
-  flameBtn.classList.remove('pressing');
-  clearTimeout(pressTimer);
-
+  isPressing = false; flameBtn.classList.remove('pressing'); clearTimeout(pressTimer);
   const circle = flameBtn.querySelector('.progress-ring circle');
   circle.style.transition = 'none';
   circle.setAttribute('stroke-dashoffset', circle.getAttribute('stroke-dasharray'));
-
-  if (!isBurning && burnProgress < 1) {
-    flameHint.textContent = '长按点燃';
-  }
+  if (!isBurning && burnProgress < 1) flameHint.textContent = '长按点燃';
 }
 
-function onPointerLeave(e) {
-  if (!isPressing) return;
-  isPressing = false;
-  flameBtn.classList.remove('pressing');
-  clearTimeout(pressTimer);
-
-  const circle = flameBtn.querySelector('.progress-ring circle');
-  circle.style.transition = 'none';
-  circle.setAttribute('stroke-dashoffset', circle.getAttribute('stroke-dasharray'));
-  flameHint.textContent = '长按点燃';
-}
+function onPointerUp(e) { e.preventDefault(); resetPress(); }
+function onPointerLeave(e) { resetPress(); }
 
 flameBtn.addEventListener('pointerdown', onPointerDown);
 flameBtn.addEventListener('pointerup', onPointerUp);
@@ -1117,22 +957,12 @@ flameBtn.addEventListener('pointerleave', onPointerLeave);
 flameBtn.addEventListener('pointercancel', onPointerLeave);
 
 function startBurning() {
-  isBurning = true;
-  burnStartTime = performance.now();
-  burnProgress = 0;
-  flameHint.textContent = '燃烧中...';
-  isPressing = false;
-  flameBtn.classList.remove('pressing');
-  initBurn();
-
-  // 播放燃烧音效
-  audioEngine.playFire();
-
-  // 60fps 动画
-  if (!animFrameId || animFrameId <= 0) {
-    lastTime = 0;
-    animFrameId = requestAnimationFrame(animate);
-  }
+  isBurning = true; burnStartTime = performance.now(); burnProgress = 0;
+  flameHint.textContent = '燃烧中...'; isPressing = false;
+  flameBtn.classList.remove('pressing'); initBurn();
+  audioEngine.playMatchStrike();
+  setTimeout(() => audioEngine.playFire(), 300);
+  if (!animFrameId || animFrameId <= 0) { lastTime = 0; animFrameId = requestAnimationFrame(animate); }
 }
 
 // ──── 生成通缉令 ────
@@ -1140,133 +970,168 @@ generateBtn.addEventListener('click', () => {
   currentName = nameInput.value.trim();
   if (!currentName || !selectedCrime) return;
   showPhase(phasePoster);
-  renderPosterToSource();
-  canvasWrapper.classList.add('drop-in');
-
-  // 重置状态
-  isBurning = false;
-  burnProgress = 0;
-  burnedBlocks = null;
-  flameBtnWrap.style.opacity = '1';
-  flameBtnWrap.style.transition = 'none';
+  // 重置
+  isBurning = false; burnProgress = 0; burnedBlocks = null;
+  flameBtnWrap.style.opacity = '1'; flameBtnWrap.style.transition = 'none';
   flameHint.textContent = '长按点燃';
   ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
   for (const p of particlePool) p.alive = false;
-
-  // 启动动画循环
-  if (!animFrameId) {
-    lastTime = 0;
-    animFrameId = requestAnimationFrame(animate);
-  }
+  if (typewriterTimer) clearInterval(typewriterTimer);
+  renderPosterToSource();
+  canvasWrapper.classList.add('drop-in');
+  if (!animFrameId) { lastTime = 0; animFrameId = requestAnimationFrame(animate); }
 });
 
 // ──── 重新开始 ────
 restartBtn.addEventListener('click', () => {
   showPhase(phaseInput);
-  burnedBlocks = null;
-  sourceCanvas = null;
-  isBurning = false;
-  burnProgress = 0;
+  burnedBlocks = null; sourceCanvas = null; posterThumb = null;
+  isBurning = false; burnProgress = 0;
   ctxPoster.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
   ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
   for (const p of particlePool) p.alive = false;
   canvasWrapper.classList.remove('drop-in');
-  flameBtnWrap.style.opacity = '1';
-  flameBtnWrap.style.transition = 'none';
+  flameBtnWrap.style.opacity = '1'; flameBtnWrap.style.transition = 'none';
   flameHint.textContent = '长按点燃';
-  ashCanvas.classList.remove('visible');
+  shareCardCanvas.style.display = 'none';
+  saveCardBtn.style.display = 'none';
   audioEngine.stopFire();
+  if (typewriterTimer) clearInterval(typewriterTimer);
+  // 重新随机排序罪名
+  initCrimeTags();
 });
 
-// ──── AudioEngine ────
+// ──── AudioEngine v2 ────
 const audioEngine = {
   ctx: null,
-  ambientGain: null,
-  fireGain: null,
-  isPlaying: false,
-  isFirePlaying: false,
-  lfo: null,
-  noiseNode: null,
+  ambientGain: null, fireGain: null,
+  isPlaying: false, isFirePlaying: false,
 
   init() {
-    try {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch(e) { return; }
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { return; }
     if (!this.ctx) return;
 
-    // 创建棕色噪声 —— 使用 AudioBuffer 循环
-    const bufferSize = this.ctx.sampleRate * 2; // 2秒循环
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
+    // ── 棕色噪声氛围（低频低沉） ──
+    const ambBufSize = this.ctx.sampleRate * 2;
+    const ambBuf = this.ctx.createBuffer(1, ambBufSize, this.ctx.sampleRate);
+    const ambData = ambBuf.getChannelData(0);
     let lastOut = 0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      lastOut = (lastOut + 0.02 * white) / 1.02;
-      data[i] = lastOut * 3.5;
+    for (let i = 0; i < ambBufSize; i++) {
+      lastOut = (lastOut + 0.02 * (Math.random()*2-1)) / 1.02;
+      ambData[i] = lastOut * 3.5;
     }
-
-    this.noiseNode = this.ctx.createBufferSource();
-    this.noiseNode.buffer = buffer;
-    this.noiseNode.loop = true;
-
-    // 低通滤波
+    const ambSrc = this.ctx.createBufferSource();
+    ambSrc.buffer = ambBuf; ambSrc.loop = true;
     const lowpass = this.ctx.createBiquadFilter();
-    lowpass.type = 'lowpass';
-    lowpass.frequency.value = 350;
-    lowpass.Q.value = 0.7;
+    lowpass.type = 'lowpass'; lowpass.frequency.value = 300; lowpass.Q.value = 0.7;
+    // LFO 调制
+    const lfo = this.ctx.createOscillator();
+    lfo.type = 'sine'; lfo.frequency.value = 0.1;
+    const lfoGain = this.ctx.createGain(); lfoGain.gain.value = 60;
+    lfo.connect(lfoGain); lfoGain.connect(lowpass.frequency); lfo.start();
 
-    // LFO 调制滤波频率
-    this.lfo = this.ctx.createOscillator();
-    this.lfo.type = 'sine';
-    this.lfo.frequency.value = 0.08;
-    const lfoGain = this.ctx.createGain();
-    lfoGain.gain.value = 80;
-    this.lfo.connect(lfoGain);
-    lfoGain.connect(lowpass.frequency);
-    this.lfo.start();
-
-    // 主音量
-    this.ambientGain = this.ctx.createGain();
-    this.ambientGain.gain.value = 0;
-
-    // 火声音量
-    this.fireGain = this.ctx.createGain();
-    this.fireGain.gain.value = 0;
-
-    // 创建火焰噼啪噪声
-    const fireBufferSize = this.ctx.sampleRate * 3;
-    const fireBuffer = this.ctx.createBuffer(1, fireBufferSize, this.ctx.sampleRate);
-    const fireData = fireBuffer.getChannelData(0);
-    for (let i = 0; i < fireBufferSize; i++) {
-      fireData[i] = (Math.random() * 2 - 1) * (Math.random() > 0.4 ? 1 : 0.2);
-    }
-    const fireSource = this.ctx.createBufferSource();
-    fireSource.buffer = fireBuffer;
-    fireSource.loop = true;
-
-    // 火焰滤波器（噼啪声集中在中高频）
-    const fireFilter = this.ctx.createBiquadFilter();
-    fireFilter.type = 'bandpass';
-    fireFilter.frequency.value = 1800;
-    fireFilter.Q.value = 1.2;
-
-    // 连接链
-    // 氛围链路
-    this.noiseNode.connect(lowpass);
-    lowpass.connect(this.ambientGain);
+    this.ambientGain = this.ctx.createGain(); this.ambientGain.gain.value = 0;
+    ambSrc.connect(lowpass); lowpass.connect(this.ambientGain);
     this.ambientGain.connect(this.ctx.destination);
+    ambSrc.start();
+    this.ambSrc = ambSrc; this.lfo = lfo;
 
-    // 火焰链路
-    fireSource.connect(fireFilter);
-    fireFilter.connect(this.fireGain);
+    // ── 火焰噼啪噪声 ──
+    const fireBufSize = this.ctx.sampleRate * 4;
+    const fireBuf = this.ctx.createBuffer(1, fireBufSize, this.ctx.sampleRate);
+    const fireData = fireBuf.getChannelData(0);
+    for (let i = 0; i < fireBufSize; i++) {
+      // 更有层次的噼啪：脉冲噪声
+      const r = Math.random();
+      const pulse = r > 0.85 ? (Math.random()*2-1)*1.5 : (r > 0.6 ? (Math.random()*2-1)*0.4 : (Math.random()*2-1)*0.08);
+      fireData[i] = pulse;
+    }
+    const fireSrc = this.ctx.createBufferSource();
+    fireSrc.buffer = fireBuf; fireSrc.loop = true;
+    const fireFilter = this.ctx.createBiquadFilter();
+    fireFilter.type = 'bandpass'; fireFilter.frequency.value = 2200; fireFilter.Q.value = 1.5;
+    this.fireGain = this.ctx.createGain(); this.fireGain.gain.value = 0;
+    fireSrc.connect(fireFilter); fireFilter.connect(this.fireGain);
     this.fireGain.connect(this.ctx.destination);
+    fireSrc.start();
+    this.fireSrc = fireSrc;
+  },
 
-    this.noiseNode.start();
-    fireSource.start();
+  // 火柴划燃音效（短促噪声爆发）
+  playMatchStrike() {
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const now = this.ctx.currentTime;
+    const dur = 0.4;
+    const src = this.ctx.createBufferSource();
+    const buf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate*dur), this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) {
+      const t = i / this.ctx.sampleRate;
+      const env = t < 0.05 ? t/0.05 : Math.exp(-8*(t-0.05));
+      d[i] = (Math.random()*2-1) * env * 0.6;
+    }
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 3500; bp.Q.value = 2.5;
+    const g = this.ctx.createGain(); g.gain.value = 0.8;
+    src.buffer = buf; src.connect(bp); bp.connect(g); g.connect(this.ctx.destination);
+    src.start(now); src.stop(now+dur);
+  },
 
-    // 存储引用
-    this.fireSource = fireSource;
-    this.lowpass = lowpass;
+  // 打字机敲击音效
+  playTick() {
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const now = this.ctx.currentTime;
+    const dur = 0.025;
+    const buf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * dur), this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) {
+      const t = i / this.ctx.sampleRate / dur; // 0→1
+      const env = t < 0.15 ? t / 0.15 : Math.exp(-14 * (t - 0.15));
+      d[i] = (Math.random() * 2 - 1) * env * 0.5;
+    }
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    // 中高频机械撞击感
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 2800 + Math.random() * 800; bp.Q.value = 1.8;
+    // 低频闷响
+    const lpFilter = this.ctx.createBiquadFilter();
+    lpFilter.type = 'lowpass'; lpFilter.frequency.value = 400 + Math.random() * 200;
+    const lpGain = this.ctx.createGain(); lpGain.gain.value = 0.15;
+    const dryGain = this.ctx.createGain(); dryGain.gain.value = 0.7;
+    const outGain = this.ctx.createGain(); outGain.gain.value = 0.12;
+    src.connect(bp); bp.connect(dryGain); dryGain.connect(outGain);
+    src.connect(lpFilter); lpFilter.connect(lpGain); lpGain.connect(outGain);
+    outGain.connect(this.ctx.destination);
+    src.start(now); src.stop(now + dur);
+  },
+
+  // 治愈钟声（合成钟鸣）
+  playBell() {
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const now = this.ctx.currentTime;
+    const freqs = [523.25, 659.25, 783.99]; // C5, E5, G5
+    freqs.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      osc.type = 'sine'; osc.frequency.value = freq;
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(0.18, now+0.05+i*0.1);
+      g.gain.exponentialRampToValueAtTime(0.001, now+3.5);
+      osc.connect(g); g.connect(this.ctx.destination);
+      osc.start(now+i*0.1); osc.stop(now+3.5);
+    });
+    // 低频嗡声
+    const osc2 = this.ctx.createOscillator();
+    osc2.type = 'sine'; osc2.frequency.value = 130.81; // C3
+    const g2 = this.ctx.createGain();
+    g2.gain.setValueAtTime(0, now); g2.gain.linearRampToValueAtTime(0.08, now+0.15);
+    g2.gain.exponentialRampToValueAtTime(0.001, now+4);
+    osc2.connect(g2); g2.connect(this.ctx.destination);
+    osc2.start(now); osc2.stop(now+4);
   },
 
   playAmbient() {
@@ -1274,28 +1139,18 @@ const audioEngine = {
     if (this.ctx.state === 'suspended') this.ctx.resume();
     this.ambientGain.gain.setTargetAtTime(0.12, this.ctx.currentTime, 1.5);
     this.isPlaying = true;
-    audioToggle.classList.remove('muted');
   },
-
   stopAmbient() {
     if (!this.ctx || !this.isPlaying) return;
     this.ambientGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.8);
     this.isPlaying = false;
-    audioToggle.classList.add('muted');
   },
-
-  toggle() {
-    if (this.isPlaying) this.stopAmbient();
-    else this.playAmbient();
-  },
-
   playFire() {
     if (!this.ctx || this.isFirePlaying) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
-    this.fireGain.gain.setTargetAtTime(0.18, this.ctx.currentTime, 0.3);
+    this.fireGain.gain.setTargetAtTime(0.18, this.ctx.currentTime, 0.2);
     this.isFirePlaying = true;
   },
-
   stopFire() {
     if (!this.ctx || !this.isFirePlaying) return;
     this.fireGain.gain.setTargetAtTime(0, this.ctx.currentTime, 1.5);
@@ -1303,35 +1158,20 @@ const audioEngine = {
   }
 };
 
-// ──── 音频按钮事件 ────
-audioToggle.addEventListener('click', () => {
-  if (!audioEngine.ctx) {
-    audioEngine.init();
-  }
-  audioEngine.toggle();
-});
-
-// ──── 首次用户交互时初始化音频 ────
+// ──── 首次交互启动音频 ────
 let audioInited = false;
 document.body.addEventListener('pointerdown', () => {
-  if (!audioInited) {
-    audioInited = true;
-    audioEngine.init();
-    audioEngine.playAmbient();
-  }
+  if (!audioInited) { audioInited = true; audioEngine.init(); audioEngine.playAmbient(); }
 }, { once: true });
 
-// ──── 初始化 ────
+// ──── 启动 ────
 function init() {
   initCrimeTags();
   resizeCanvases();
-  resizeAshCanvas();
-  // 启动主循环（用于粒子动画等持续性渲染）
   lastTime = 0;
   animFrameId = requestAnimationFrame(animate);
 }
 init();
 </script>
 </body>
-</html>
 </html>
