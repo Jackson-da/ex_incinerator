@@ -1,5 +1,5 @@
 import { $, $$, phaseInput, phasePoster, phaseHealing, nameInput, crimeTagsEl, generateBtn,
-  tabContents, saveDbBtn, saveDbStatus, upgradePrompt, historyList, historyEmpty, historyLoading,
+  tabContents, upgradePrompt, historyList, historyEmpty, historyLoading,
   authModalOverlay, authModalTitle, authModalSub, authEmail, authPassword, authPassword2,
   btnAuthSubmit, authError, btnSwitchMode, btnForgotPwd, btnShowLogin,
   canvasWrapper, posterCanvas, fireCanvas, flameBtnWrap, flameHint, shareCardCanvas, saveCardBtn,
@@ -145,15 +145,26 @@ export async function loadHistoryPanel() {
     const date = new Date(rec.burned_at).toLocaleDateString('zh-CN', {
       year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
+    const btnCard = document.createElement('button');
+    btnCard.className = 'btn-card';
+    btnCard.textContent = '卡 片';
+    btnCard.dataset.name = rec.ex_name;
+    btnCard.dataset.crime = rec.crime;
+    btnCard.dataset.verdict = rec.verdict;
+    btnCard.dataset.quote = rec.heal_quote || '';
+    const btnDelete = document.createElement('button');
+    btnDelete.className = 'btn-delete';
+    btnDelete.textContent = '删 除';
+    btnDelete.dataset.id = rec.id;
     div.innerHTML =
       '<div class="hi-info">' +
         '<div class="hi-name">' + escapeHTML(rec.ex_name) + '</div>' +
         '<div class="hi-crime">罪名：' + escapeHTML(rec.crime) + '</div>' +
         '<div class="hi-date">' + date + '</div>' +
         '<div class="hi-verdict">' + escapeHTML(rec.verdict) + '</div>' +
-      '</div>' +
-      '<button class="btn-card" data-name="' + escapeHTML(rec.ex_name) + '" data-crime="' + escapeHTML(rec.crime) + '" data-verdict="' + escapeHTML(rec.verdict) + '" data-quote="' + escapeHTML(rec.heal_quote || '') + '">卡 片</button>' +
-      '<button class="btn-delete" data-id="' + rec.id + '">删 除</button>';
+      '</div>';
+    div.appendChild(btnCard);
+    div.appendChild(btnDelete);
     historyList.appendChild(div);
   });
 
@@ -210,9 +221,6 @@ export function refreshHealingButtons() {
   if (!phaseHealing.classList.contains('active')) return;
   if (isLoggedIn()) {
     upgradePrompt.style.display = 'none';
-    saveDbBtn.style.display = 'block';
-    saveDbBtn.disabled = false;
-    saveDbStatus.style.display = 'none';
   }
 }
 
@@ -222,8 +230,6 @@ export function resetIncineratorUI() {
   flameHint.textContent = '长按点燃';
   shareCardCanvas.style.display = 'none';
   saveCardBtn.style.display = 'none';
-  saveDbBtn.style.display = 'none';
-  saveDbStatus.style.display = 'none';
   upgradePrompt.style.display = 'none';
   selectedCrime = null;
   nameInput.value = '';

@@ -32,7 +32,6 @@ export const upgradePrompt = $('#upgrade-prompt'), btnUpgradeLogin = $('#btn-upg
 export const btnSkipUpgrade = $('#btn-skip-upgrade');
 
 // 焚烧历史
-export const saveDbBtn = $('#save-db-btn'), saveDbStatus = $('#save-db-status');
 export const historyList = $('#history-list'), historyEmpty = $('#history-empty'), historyLoading = $('#history-loading');
 export const cardModalOverlay = $('#card-modal-overlay'), cardPreviewCanvas = $('#card-preview-canvas');
 export const btnCloseCard = $('#btn-close-card'), btnCardDownload = $('#btn-card-download');
