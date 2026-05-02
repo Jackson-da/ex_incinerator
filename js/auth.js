@@ -7,10 +7,6 @@ import { authUserLabel, btnShowLogin, btnLogout, authModalOverlay, authModalTitl
 export let currentUser = null;
 export let authMode = 'login';
 export let recoveryToken = null;
-export function setAuthMode(m) { authMode = m; }
-export function getAuthMode() { return authMode; }
-export function setRecoveryToken(t) { recoveryToken = t; }
-export function getRecoveryToken() { return recoveryToken; }
 
 export function getCurrentUser() { return currentUser; }
 export function setCurrentUser(u) { currentUser = u; }

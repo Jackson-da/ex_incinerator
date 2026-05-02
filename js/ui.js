@@ -7,7 +7,7 @@ import { $, $$, phaseInput, phasePoster, phaseHealing, nameInput, crimeTagsEl, g
 import { getShuffledCrimes } from './data.js';
 import { isLoggedIn, escapeHTML } from './utils.js';
 import { fetchBurnHistory, deleteBurnRecord } from './api.js';
-import { authMode, recoveryToken, setCurrentUser, getCurrentUser, setAuthMode, getAuthMode, setRecoveryToken, getRecoveryToken } from './auth.js';
+import { setCurrentUser, getCurrentUser } from './auth.js';
 import { stopTypewriter } from './poster.js';
 
 // ──── 标签页切换 ────
@@ -35,6 +35,8 @@ export function showPhase(phase) {
 
 // ──── 罪名标签 ────
 let selectedCrime = null;
+let authMode = 'login';
+let recoveryToken = null;
 export function getSelectedCrime() { return selectedCrime; }
 export function setSelectedCrime(c) { selectedCrime = c; }
 
@@ -68,7 +70,10 @@ export function updateGenerateBtn() {
 }
 
 // ──── 认证弹窗 ────
-export { setAuthMode, getAuthMode, setRecoveryToken, getRecoveryToken } from './auth.js';
+export function setAuthMode(m) { authMode = m; }
+export function getAuthMode() { return authMode; }
+export function setRecoveryToken(t) { recoveryToken = t; }
+export function getRecoveryToken() { return recoveryToken; }
 
 export function showAuthModal(mode) {
   window._authMode = mode;
