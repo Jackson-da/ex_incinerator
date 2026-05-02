@@ -28,13 +28,29 @@ let lastTime = 0, animFrameId = null;
 let audioInited = false;
 
 // ──── 动画循环 ────
+function ensureAnimLoop() {
+  if (!animFrameId) {
+    lastTime = 0;
+    animFrameId = requestAnimationFrame(animate);
+  }
+}
+
+function stopAnimLoop() {
+  if (animFrameId) {
+    cancelAnimationFrame(animFrameId);
+    animFrameId = null;
+  }
+}
+
 function animate(timestamp) {
   if (!lastTime) lastTime = timestamp;
   let dt = (timestamp - lastTime) / 1000;
   if (dt > 0.1) dt = 0.1;
   lastTime = timestamp;
+  let hasWork = false;
 
   if (burnMod.isRevealing) {
+    hasWork = true;
     const done = burnMod.updateReveal();
     burnMod.renderParticles();
     if (done || (timestamp - burnMod.revealStartTime > 3000)) {
@@ -42,13 +58,15 @@ function animate(timestamp) {
       const w = posterCanvas.width, h = posterCanvas.height;
       posterMod.startTypewriter(w, h, ctxPoster, currentVerdict, currentName, uiMod.getSelectedCrime(),
         () => audioEngine.playTick(),
-        () => posterMod.startStampAnimation(audioEngine)
+        () => { posterMod.startStampAnimation(audioEngine); ensureAnimLoop(); }
       );
     }
   } else if (posterMod.isStampAnimating) {
+    hasWork = true;
     posterMod.updateStampAnimation();
     burnMod.renderParticles();
   } else if (burnMod.isBurning) {
+    hasWork = true;
     burnMod.updateBurn(dt);
     burnMod.renderParticles();
     burnMod.updateParticles(dt);
@@ -57,13 +75,18 @@ function animate(timestamp) {
       audioEngine.stopFire();
       setTimeout(showHealingPhase, 2800);
     }
-  } else if (burnMod.burnedBlocks && burnMod.burnedBlocks.size > 0) {
+  } else if (burnMod.burnedCount > 0 || (burnMod.postBurnStartTime && burnMod.hasActiveParticles())) {
+    hasWork = true;
     burnMod.renderParticles();
     burnMod.renderPostBurnFrame(timestamp);
     burnMod.updateParticles(dt);
   }
 
-  animFrameId = requestAnimationFrame(animate);
+  if (hasWork) {
+    animFrameId = requestAnimationFrame(animate);
+  } else {
+    animFrameId = null;
+  }
 }
 
 // ──── 治愈阶段 ────
@@ -122,7 +145,7 @@ function startBurning() {
   flameBtn.classList.remove('pressing');
   audioEngine.playMatchStrike();
   setTimeout(() => audioEngine.playFire(), 300);
-  if (!animFrameId || animFrameId <= 0) { lastTime = 0; animFrameId = requestAnimationFrame(animate); }
+  ensureAnimLoop();
 }
 
 // ──── 生成通缉令 ────
@@ -145,8 +168,6 @@ generateBtn.addEventListener('click', () => {
   ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
   ctxPoster.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
   for (const p of burnMod.particlePool) p.alive = false;
-  if (!animFrameId) { lastTime = 0; animFrameId = requestAnimationFrame(animate); }
-
   phaseInput.classList.add('leaving');
   setTimeout(() => {
     phaseInput.classList.remove('leaving');
@@ -156,11 +177,13 @@ generateBtn.addEventListener('click', () => {
     ctxPoster.fillRect(0, 0, posterCanvas.width, posterCanvas.height);
     audioEngine.playReveal();
     burnMod.startReveal();
+    ensureAnimLoop();
   }, 350);
 });
 
 // ──── 重新开始 ────
 restartBtn.addEventListener('click', () => {
+  stopAnimLoop();
   uiMod.showPhase(phaseInput);
   uiMod.switchTab('incinerator');
   burnMod.resetBurnState(); burnMod.resetRevealState();
@@ -357,7 +380,5 @@ async function init() {
     }
   }
 
-  lastTime = 0;
-  animFrameId = requestAnimationFrame(animate);
 }
 init();
