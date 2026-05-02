@@ -5,7 +5,8 @@ import {
   posterCanvas, fireCanvas, ctxPoster, ctxFire,
   flameBtn, flameBtnWrap, flameHint,
   healQuote, restartBtn, shareCardCanvas, saveCardBtn,
-  upgradePrompt, authModalOverlay, btnShowLogin, btnLogout, btnCloseModal,
+  cardModalOverlay, cardPreviewCanvas, btnCloseCard, btnCardDownload,
+  upgradePrompt, authModalOverlay, btnShowLogin, btnShowRegister, btnLogout, btnCloseModal,
   btnAuthSubmit, authEmail, authPassword, authPassword2, authError,
   btnSwitchMode, btnForgotPwd, btnUpgradeLogin, btnSkipUpgrade,
 } from './dom.js';
@@ -215,6 +216,32 @@ saveCardBtn.addEventListener('click', () => {
   link.click();
 });
 
+// ──── 点击分享卡片预览 ────
+shareCardCanvas.addEventListener('click', async () => {
+  cardModalOverlay.classList.add('active');
+  const { drawCard } = await import('./healing.js');
+  await drawCard(cardPreviewCanvas, {
+    name: currentName,
+    crime: uiMod.getSelectedCrime(),
+    verdict: currentVerdict,
+    healQuoteText: healQuote.textContent,
+    sourceThumb: posterMod.sourceCanvas,
+    displayMaxWidth: window.innerWidth * 0.5
+  });
+});
+
+// ──── 卡片弹窗关闭 / 下载 ────
+btnCloseCard.addEventListener('click', () => cardModalOverlay.classList.remove('active'));
+cardModalOverlay.addEventListener('click', (e) => {
+  if (e.target === cardModalOverlay) cardModalOverlay.classList.remove('active');
+});
+btnCardDownload.addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = `前任焚烧炉_${currentName}_${uiMod.getSelectedCrime()}.png`;
+  link.href = cardPreviewCanvas.toDataURL('image/png');
+  link.click();
+});
+
 // ──── 长按事件 ────
 flameBtn.addEventListener('pointerdown', onPointerDown);
 flameBtn.addEventListener('pointerup', onPointerUp);
@@ -228,6 +255,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 // ──── 认证弹窗事件 ────
 btnShowLogin.addEventListener('click', () => uiMod.showAuthModal('login'));
+btnShowRegister.addEventListener('click', () => uiMod.showAuthModal('register'));
 btnCloseModal.addEventListener('click', uiMod.hideAuthModal);
 authModalOverlay.addEventListener('click', (e) => {
   if (e.target === authModalOverlay) uiMod.hideAuthModal();

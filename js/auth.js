@@ -1,5 +1,5 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
-import { authUserLabel, btnShowLogin, btnLogout, authModalOverlay, authModalTitle, authModalSub,
+import { authUserLabel, btnShowLogin, btnShowRegister, btnLogout, authModalOverlay, authModalTitle, authModalSub,
   authEmail, authPassword, authPassword2, btnAuthSubmit, authError, btnSwitchMode, btnForgotPwd,
   upgradePrompt, phaseHealing } from './dom.js';
 
@@ -296,11 +296,13 @@ export function updateAuthUI(nickname) {
     authUserLabel.textContent = nickname || currentUser.email;
     authUserLabel.title = '点击修改昵称';
     btnShowLogin.style.display = 'none';
+    btnShowRegister.style.display = 'none';
     btnLogout.style.display = '';
   } else {
-    authUserLabel.textContent = '未登录';
+    authUserLabel.textContent = '';
     authUserLabel.title = '';
     btnShowLogin.style.display = '';
+    btnShowRegister.style.display = '';
     btnLogout.style.display = 'none';
   }
 }

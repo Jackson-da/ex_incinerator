@@ -68,7 +68,7 @@ export const audioEngine = {
     lpFilter.type = 'lowpass'; lpFilter.frequency.value = 400 + Math.random() * 200;
     const lpGain = this.ctx.createGain(); lpGain.gain.value = 0.15;
     const dryGain = this.ctx.createGain(); dryGain.gain.value = 0.7;
-    const outGain = this.ctx.createGain(); outGain.gain.value = 0.22;
+    const outGain = this.ctx.createGain(); outGain.gain.value = 0.4;
     src.connect(bp); bp.connect(dryGain); dryGain.connect(outGain);
     src.connect(lpFilter); lpFilter.connect(lpGain); lpGain.connect(outGain);
     outGain.connect(this.ctx.destination);
@@ -116,23 +116,28 @@ export const audioEngine = {
     if (!this.ctx) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
     const now = this.ctx.currentTime;
-    const dur = 0.25;
-    const buf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * dur), this.ctx.sampleRate);
+    const dur = 0.35, sr = this.ctx.sampleRate, len = Math.floor(sr * dur);
+    const buf = this.ctx.createBuffer(1, len, sr);
     const d = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) {
-      const t = i / this.ctx.sampleRate;
-      const env = Math.exp(-18 * t);
-      d[i] = (Math.random() * 2 - 1) * env * 0.5;
+    for (let i = 0; i < len; i++) {
+      const t = i / sr;
+      // 主体：原版噪声盖章，清脆攻击
+      const noiseEnv = t < 0.015 ? t / 0.015 : Math.exp(-20 * (t - 0.015));
+      const noise = (Math.random() * 2 - 1) * noiseEnv * 0.55;
+      // 厚重底座：100Hz 短促低频，增加分量感
+      const lowEnv = t < 0.02 ? t / 0.02 : Math.exp(-25 * (t - 0.02));
+      const low = Math.sin(2 * Math.PI * 100 * t) * lowEnv * 0.12;
+      d[i] = noise + low;
     }
     const src = this.ctx.createBufferSource();
     src.buffer = buf;
     const lp = this.ctx.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 180;
-    const lpGain = this.ctx.createGain(); lpGain.gain.value = 0.6;
+    lp.type = 'lowpass'; lp.frequency.value = 220; lp.Q.value = 0.6;
     const bp = this.ctx.createBiquadFilter();
     bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.2;
+    const lpGain = this.ctx.createGain(); lpGain.gain.value = 0.5;
     const bpGain = this.ctx.createGain(); bpGain.gain.value = 0.25;
-    const outGain = this.ctx.createGain(); outGain.gain.value = 0.75;
+    const outGain = this.ctx.createGain(); outGain.gain.value = 1.1;
     src.connect(lp); lp.connect(lpGain); lpGain.connect(outGain);
     src.connect(bp); bp.connect(bpGain); bpGain.connect(outGain);
     outGain.connect(this.ctx.destination);

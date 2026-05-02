@@ -53,10 +53,11 @@ function mulberry32(a) {
   return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 }
 
-export async function drawCard(canvas, { name, crime, verdict, healQuoteText, sourceThumb }) {
+export async function drawCard(canvas, { name, crime, verdict, healQuoteText, sourceThumb, displayMaxWidth }) {
   const w = 2000, h = 1250;
   canvas.width = w; canvas.height = h;
-  canvas.style.width = Math.min(400, window.innerWidth - 40) + 'px';
+  const maxW = displayMaxWidth || 640;
+  canvas.style.width = Math.min(maxW, window.innerWidth - 48) + 'px';
   canvas.style.height = 'auto';
 
   const ctx = canvas.getContext('2d');

@@ -20,7 +20,7 @@ export const shareCardCanvas = $('#share-card-canvas'), saveCardBtn = $('#save-c
 
 // 认证
 export const authUserLabel = $('#auth-user-label');
-export const btnShowLogin = $('#btn-show-login'), btnLogout = $('#btn-logout');
+export const btnShowLogin = $('#btn-show-login'), btnShowRegister = $('#btn-show-register'), btnLogout = $('#btn-logout');
 export const authModalOverlay = $('#auth-modal-overlay'), authModalTitle = $('#auth-modal-title');
 export const authModalSub = $('#auth-modal-sub'), authEmail = $('#auth-email'), authPassword = $('#auth-password'), authPassword2 = $('#auth-password2');
 export const btnAuthSubmit = $('#btn-auth-submit'), authError = $('#auth-error');

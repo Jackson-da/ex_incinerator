@@ -186,7 +186,8 @@ export async function loadHistoryPanel() {
       await drawCard(cardPreviewCanvas, {
         name, crime, verdict,
         healQuoteText: quote,
-        sourceThumb: posterThumb
+        sourceThumb: posterThumb,
+        displayMaxWidth: window.innerWidth * 0.5
       });
     });
   });
