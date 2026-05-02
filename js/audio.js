@@ -78,24 +78,38 @@ export const audioEngine = {
   playBell() {
     if (!this.ctx) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
-    const now = this.ctx.currentTime;
-    const freqs = [523.25, 659.25, 783.99];
-    freqs.forEach((freq, i) => {
-      const osc = this.ctx.createOscillator();
-      osc.type = 'sine'; osc.frequency.value = freq;
-      const g = this.ctx.createGain();
-      g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(0.18, now+0.05+i*0.1);
-      g.gain.exponentialRampToValueAtTime(0.001, now+3.5);
-      osc.connect(g); g.connect(this.ctx.destination);
-      osc.start(now+i*0.1); osc.stop(now+3.5);
-    });
-    const osc2 = this.ctx.createOscillator();
-    osc2.type = 'sine'; osc2.frequency.value = 130.81;
-    const g2 = this.ctx.createGain();
-    g2.gain.setValueAtTime(0, now); g2.gain.linearRampToValueAtTime(0.08, now+0.15);
-    g2.gain.exponentialRampToValueAtTime(0.001, now+4);
-    osc2.connect(g2); g2.connect(this.ctx.destination);
-    osc2.start(now); osc2.stop(now+4);
+    const dur = 4.5, sr = this.ctx.sampleRate, len = Math.floor(sr * dur);
+    const buf = this.ctx.createBuffer(1, len, sr);
+    const d = buf.getChannelData(0);
+    // 高音 C5/E5/G5, 低音 C3 — 完全匹配原版 OscillatorNode 参数
+    const voices = [
+      { freq: 523.25, gain: 0.18, delay: 0,    decayTo: 0.001, decayEnd: 3.5 },
+      { freq: 659.25, gain: 0.18, delay: 0.1,  decayTo: 0.001, decayEnd: 3.5 },
+      { freq: 783.99, gain: 0.18, delay: 0.2,  decayTo: 0.001, decayEnd: 3.5 },
+      { freq: 130.81, gain: 0.08, delay: 0.15, decayTo: 0.001, decayEnd: 4 },
+    ];
+    for (let i = 0; i < len; i++) {
+      const t = i / sr;
+      let sample = 0;
+      for (const v of voices) {
+        const td = t - v.delay;
+        if (td < 0) continue;
+        const attackDur = 0.05;
+        let env;
+        if (td < attackDur) {
+          env = td / attackDur;
+        } else {
+          const decayRate = -Math.log(v.decayTo / v.gain) / (v.decayEnd - attackDur);
+          env = Math.exp(-decayRate * (td - attackDur));
+        }
+        sample += Math.sin(2 * Math.PI * v.freq * td) * v.gain * env;
+      }
+      d[i] = sample;
+    }
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(this.ctx.destination);
+    src.start(this.ctx.currentTime);
   },
 
   playStamp() {
