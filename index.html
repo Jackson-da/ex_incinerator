@@ -84,14 +84,26 @@
   <!-- 焚烧历史标签页 -->
   <div class="tab-content" id="tab-history">
     <div class="history-panel">
-      <h3>焚 烧 历 史</h3>
       <p class="modal-sub">这些前任，已化为灰烬</p>
-      <div id="history-list"></div>
-      <div id="history-empty" style="display:none; color:var(--text-dim); padding:40px 0; text-align:center; letter-spacing:2px;">
-        <svg style="width:48px;height:48px;display:block;margin:0 auto 16px;color:var(--text-dim);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        还没有焚烧记录<br>去审判一个前任吧
+      <div class="history-stats" id="history-stats" style="display:none;">
+        <span>共焚烧 <strong id="stats-count">0</strong> 位</span>
+        <span class="stats-dot">·</span>
+        <span>最近一次：<span id="stats-latest">-</span></span>
       </div>
-      <div id="history-loading" style="text-align:center; padding:30px; color:var(--text-dim); letter-spacing:2px;">加载中...</div>
+      <div id="history-list"></div>
+      <div id="history-empty" style="display:none;">
+        <div class="empty-archive">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            <line x1="9" y1="13" x2="15" y2="13"/>
+            <line x1="9" y1="16" x2="13" y2="16"/>
+          </svg>
+          <h4>档案架空空如也</h4>
+          <p>去焚烧炉审判第一位前任吧</p>
+          <button class="btn-go-incinerator" id="btn-go-incinerator">前往焚烧炉 →</button>
+        </div>
+      </div>
+      <div id="history-loading" style="text-align:center; padding:48px 20px; color:var(--text-muted); letter-spacing:2px; font-size:14px;">加载中...</div>
     </div>
   </div>
 

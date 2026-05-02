@@ -130,69 +130,194 @@ export function hideAuthModal() {
 }
 
 // ──── 焚烧历史面板 ────
+const PAGE_SIZE = 10;
+let _allRecords = [];
+let _shownCount = 0;
+
+function showHistoryEmpty() {
+  historyEmpty.style.display = 'block';
+  const statsBar = $('#history-stats');
+  if (statsBar) statsBar.style.display = 'none';
+}
+
+function updateStats(records) {
+  const statsBar = $('#history-stats');
+  if (!statsBar) return;
+  statsBar.style.display = '';
+  const countEl = $('#stats-count'), latestEl = $('#stats-latest');
+  if (countEl) countEl.textContent = records.length;
+  if (latestEl && records.length > 0) {
+    latestEl.textContent = new Date(records[0].burned_at).toLocaleDateString('zh-CN', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+}
+
+function refreshStatsAfterDelete() {
+  const remaining = historyList.querySelectorAll('.history-card');
+  if (remaining.length === 0) {
+    showHistoryEmpty();
+    return;
+  }
+  const countEl = $('#stats-count');
+  if (countEl) countEl.textContent = remaining.length;
+}
+
+function renderHistoryCard(rec, index) {
+  const card = document.createElement('div');
+  card.className = 'history-card';
+  card.id = 'record-' + rec.id;
+  card.style.animationDelay = (index * 40) + 'ms';
+
+  const date = new Date(rec.burned_at).toLocaleDateString('zh-CN', {
+    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+
+  card.innerHTML =
+    '<div class="hc-accent"></div>' +
+    '<div class="hc-body">' +
+      '<div class="hc-header">' +
+        '<span class="hc-name">' + escapeHTML(rec.ex_name) + '</span>' +
+        '<span class="hc-crime-tag">' + escapeHTML(rec.crime) + '</span>' +
+      '</div>' +
+      '<div class="hc-verdict">' + escapeHTML(rec.verdict) + '</div>' +
+      '<div class="hc-footer">' +
+        '<span class="hc-date">' + date + '</span>' +
+        '<div class="hc-actions">' +
+          '<button class="hc-btn-card">卡 片</button>' +
+          '<button class="hc-btn-delete">删 除</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="hc-confirm">' +
+        '<span class="hc-confirm-text">确认将此记录化为灰烬？</span>' +
+        '<button class="hc-confirm-yes">确认</button>' +
+        '<button class="hc-confirm-no">取消</button>' +
+      '</div>' +
+    '</div>';
+
+  card._data = {
+    name: rec.ex_name,
+    crime: rec.crime,
+    verdict: rec.verdict,
+    quote: rec.heal_quote || ''
+  };
+  card._recordId = rec.id;
+
+  bindHistoryCardEvents(card);
+  return card;
+}
+
+function bindHistoryCardEvents(card) {
+  // 卡片预览
+  card.querySelector('.hc-btn-card').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const { name, crime, verdict, quote } = card._data;
+    cardModalOverlay.classList.add('active');
+    const [{ drawCard }, { renderHistoryPoster }] = await Promise.all([
+      import('./healing.js'),
+      import('./poster.js')
+    ]);
+    const posterThumb = renderHistoryPoster(name, crime, verdict);
+    await drawCard(cardPreviewCanvas, {
+      name, crime, verdict,
+      healQuoteText: quote,
+      sourceThumb: posterThumb,
+      displayMaxWidth: window.innerWidth * 0.5
+    });
+  });
+
+  // 删除 → 展开确认栏
+  card.querySelector('.hc-btn-delete').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const confirmBar = card.querySelector('.hc-confirm');
+    historyList.querySelectorAll('.hc-confirm').forEach(c => {
+      if (c !== confirmBar) c.style.display = 'none';
+    });
+    confirmBar.style.display = 'flex';
+  });
+
+  // 确认删除
+  card.querySelector('.hc-confirm-yes').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const id = card._recordId;
+    card.classList.add('burning-out');
+    const { error } = await deleteBurnRecord(id);
+    if (error) {
+      card.classList.remove('burning-out');
+      alert(error.message);
+    } else {
+      card.addEventListener('animationend', () => {
+        card.remove();
+        refreshStatsAfterDelete();
+      }, { once: true });
+    }
+  });
+
+  // 取消删除
+  card.querySelector('.hc-confirm-no').addEventListener('click', (e) => {
+    e.stopPropagation();
+    card.querySelector('.hc-confirm').style.display = 'none';
+  });
+}
+
+function ensureLoadMoreBtn() {
+  let btn = historyList.querySelector('.load-more-btn');
+  if (btn) return btn;
+  btn = document.createElement('button');
+  btn.className = 'load-more-btn';
+  btn.textContent = '加载更多卷宗 ↓';
+  btn.addEventListener('click', () => {
+    btn.style.display = 'none';
+    renderNextPage();
+  });
+  historyList.appendChild(btn);
+  return btn;
+}
+
+function renderNextPage() {
+  const batch = _allRecords.slice(_shownCount, _shownCount + PAGE_SIZE);
+  const startIndex = _shownCount;
+
+  batch.forEach((rec, i) => {
+    const card = renderHistoryCard(rec, startIndex + i);
+    historyList.appendChild(card);
+  });
+
+  _shownCount += batch.length;
+
+  if (_shownCount < _allRecords.length) {
+    const btn = ensureLoadMoreBtn();
+    btn.style.display = '';
+    // 移到列表末尾
+    historyList.appendChild(btn);
+  } else {
+    const btn = historyList.querySelector('.load-more-btn');
+    if (btn) btn.style.display = 'none';
+  }
+}
+
 export async function loadHistoryPanel() {
   historyList.innerHTML = '';
   historyEmpty.style.display = 'none';
+  const statsBar = $('#history-stats');
+  if (statsBar) statsBar.style.display = 'none';
   historyLoading.style.display = 'block';
 
   const records = await fetchBurnHistory();
   historyLoading.style.display = 'none';
 
   if (!records || records.length === 0) {
-    historyEmpty.style.display = 'block';
+    showHistoryEmpty();
     return;
   }
 
-  records.forEach(rec => {
-    const div = document.createElement('div');
-    div.className = 'history-item';
-    div.id = 'record-' + rec.id;
-    const date = new Date(rec.burned_at).toLocaleDateString('zh-CN', {
-      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-    const btnCard = document.createElement('button');
-    btnCard.className = 'btn-card';
-    btnCard.textContent = '卡 片';
-    btnCard.dataset.name = rec.ex_name;
-    btnCard.dataset.crime = rec.crime;
-    btnCard.dataset.verdict = rec.verdict;
-    btnCard.dataset.quote = rec.heal_quote || '';
-    const btnDelete = document.createElement('button');
-    btnDelete.className = 'btn-delete';
-    btnDelete.textContent = '删 除';
-    btnDelete.dataset.id = rec.id;
-    div.innerHTML =
-      '<div class="hi-info">' +
-        '<div class="hi-name">' + escapeHTML(rec.ex_name) + '</div>' +
-        '<div class="hi-crime">罪名：' + escapeHTML(rec.crime) + '</div>' +
-        '<div class="hi-date">' + date + '</div>' +
-        '<div class="hi-verdict">' + escapeHTML(rec.verdict) + '</div>' +
-      '</div>';
-    div.appendChild(btnCard);
-    div.appendChild(btnDelete);
-    historyList.appendChild(div);
-  });
+  _allRecords = records;
+  _shownCount = 0;
 
-  // 卡片预览
-  historyList.querySelectorAll('.btn-card').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const { name, crime, verdict, quote } = e.target.dataset;
-      cardModalOverlay.classList.add('active');
-      const [{ drawCard }, { renderHistoryPoster }] = await Promise.all([
-        import('./healing.js'),
-        import('./poster.js')
-      ]);
-      const posterThumb = renderHistoryPoster(name, crime, verdict);
-      await drawCard(cardPreviewCanvas, {
-        name, crime, verdict,
-        healQuoteText: quote,
-        sourceThumb: posterThumb,
-        displayMaxWidth: window.innerWidth * 0.5
-      });
-    });
-  });
+  updateStats(records);
+  renderNextPage();
 
-  // 关闭卡片弹窗
+  // 卡片弹窗关闭/下载
   btnCloseCard.onclick = () => cardModalOverlay.classList.remove('active');
   cardModalOverlay.onclick = (e) => {
     if (e.target === cardModalOverlay) cardModalOverlay.classList.remove('active');
@@ -203,23 +328,6 @@ export async function loadHistoryPanel() {
     link.href = cardPreviewCanvas.toDataURL('image/png');
     link.click();
   };
-
-  historyList.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.target.dataset.id;
-      if (!confirm('确定要删除这条焚烧记录吗？')) return;
-      const item = document.getElementById('record-' + id);
-      if (item) item.classList.add('deleting');
-      const { error } = await deleteBurnRecord(id);
-      if (error) {
-        alert(error.message);
-        if (item) item.classList.remove('deleting');
-      } else {
-        if (item) item.remove();
-        if (historyList.children.length === 0) historyEmpty.style.display = 'block';
-      }
-    });
-  });
 }
 
 // ──── 治愈阶段按钮刷新 ────

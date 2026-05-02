@@ -9,6 +9,7 @@ import {
   upgradePrompt, authModalOverlay, btnShowLogin, btnShowRegister, btnLogout, btnCloseModal,
   btnAuthSubmit, authEmail, authPassword, authPassword2, authError,
   btnSwitchMode, btnForgotPwd, btnUpgradeLogin, btnSkipUpgrade,
+  btnGoIncinerator,
 } from './dom.js';
 import * as posterMod from './poster.js';
 import * as burnMod from './burn.js';
@@ -252,6 +253,9 @@ flameBtn.addEventListener('pointercancel', onPointerLeave);
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => uiMod.switchTab(btn.dataset.tab));
 });
+
+// 空状态跳转按钮
+btnGoIncinerator.addEventListener('click', () => uiMod.switchTab('incinerator'));
 
 // ──── 认证弹窗事件 ────
 btnShowLogin.addEventListener('click', () => uiMod.showAuthModal('login'));

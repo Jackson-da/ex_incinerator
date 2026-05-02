@@ -34,6 +34,7 @@ export const btnSkipUpgrade = $('#btn-skip-upgrade');
 // 焚烧历史
 export const historyList = $('#history-list'), historyEmpty = $('#history-empty'), historyLoading = $('#history-loading');
 export const cardModalOverlay = $('#card-modal-overlay'), cardPreviewCanvas = $('#card-preview-canvas');
+export const btnGoIncinerator = $('#btn-go-incinerator');
 export const btnCloseCard = $('#btn-close-card'), btnCardDownload = $('#btn-card-download');
 
 // Canvas 2D 上下文

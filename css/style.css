@@ -333,67 +333,198 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
 .auth-error { color:var(--destructive); font-size:13px; margin-top:8px; min-height:20px; }
 /* 焚烧历史 */
 .history-panel {
-  padding:0 0 0 28px; width:100%; max-width:560px; text-align:left;
-  position:relative;
-}
-.history-panel::before {
-  content:''; position:absolute; left:4px; top:0; bottom:0;
-  width:1px; background:rgba(200,164,78,0.12);
+  width:100%; max-width:560px; text-align:left;
 }
 .history-panel h3 {
   font-size:28px; font-weight:700; color:var(--text); margin-bottom:6px; letter-spacing:2px;
 }
 .history-panel .modal-sub {
-  font-size:14px; color:var(--text-dim); margin-bottom:32px;
+  font-size:14px; color:var(--text-dim); margin-bottom:24px;
 }
-.history-item {
-  display:flex; align-items:flex-start; justify-content:space-between;
-  padding:20px 0; margin:0; gap:12px;
-  border:none; border-bottom:1px solid rgba(255,255,255,0.04);
-  background:transparent; transition:all 0.25s;
-  text-align:left; position:relative;
+
+/* 统计栏 */
+.history-stats {
+  font-size:13px; color:var(--text-muted); letter-spacing:1px;
+  margin-bottom:28px; padding-bottom:18px;
+  border-bottom:1px solid rgba(200,164,78,0.08);
 }
-.history-item::before {
-  content:''; position:absolute; left:-31px; top:28px;
-  width:10px; height:10px; border-radius:50%;
-  background:var(--bg-deep); border:2px solid var(--gold-dim);
+.history-stats strong { color:var(--gold-dim); font-weight:600; }
+.stats-dot { margin:0 8px; color:rgba(200,164,78,0.25); }
+
+/* ──── 焚烧卷宗档案卡 ──── */
+.history-card {
+  position:relative; display:flex;
+  margin-bottom:16px;
+  background:var(--bg-surface);
+  border:1px solid rgba(255,255,255,0.03);
+  overflow:hidden;
+  transition:transform 0.25s ease-out, box-shadow 0.25s ease-out;
+  animation:cardSlideIn 0.5s ease-out both;
+}
+.history-card:hover {
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(200,164,78,0.05);
+}
+.history-card.burning-out {
+  animation:cardBurnOut 0.35s ease-in forwards;
+  pointer-events:none;
+}
+
+/* 火焰 accent bar */
+.hc-accent {
+  flex-shrink:0; width:3px;
+  background:var(--flame); opacity:0.55;
+  transition:opacity 0.25s;
+}
+.history-card:hover .hc-accent { opacity:1; }
+
+/* 卡片主体 */
+.hc-body {
+  flex:1; padding:22px 24px; min-width:0;
+}
+
+.hc-header {
+  display:flex; align-items:center; gap:12px; margin-bottom:12px;
+}
+.hc-name {
+  font-size:20px; font-weight:700; color:var(--text); letter-spacing:1px;
+}
+.hc-crime-tag {
+  font-size:11px; font-weight:500;
+  color:var(--flame); letter-spacing:2px;
+  padding:2px 10px;
+  border:1px solid rgba(255,94,19,0.15);
+  background:rgba(255,94,19,0.05);
+}
+
+/* 判决引文 */
+.hc-verdict {
+  font-family:'Noto Serif SC','STKaiti','KaiTi',serif;
+  font-size:14px; line-height:1.8; color:var(--text-dim);
+  margin-bottom:16px;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+/* 底部信息栏 */
+.hc-footer {
+  display:flex; align-items:center; justify-content:space-between;
+}
+.hc-date {
+  font-size:12px; color:var(--text-muted); letter-spacing:1px;
+}
+.hc-actions { display:flex; gap:6px; }
+
+.hc-btn-card, .hc-btn-delete {
+  padding:6px 16px; min-height:36px; min-width:44px;
+  border:1px solid transparent; border-radius:0;
+  background:transparent;
+  font-size:12px; letter-spacing:2px;
+  cursor:pointer; transition:all 0.2s ease-out;
+  font-family:inherit; color:var(--text-dim);
+}
+.hc-btn-card:hover {
+  border-color:var(--gold-dim); color:var(--gold);
+}
+.hc-btn-delete:hover {
+  border-color:var(--blood); color:var(--blood);
+}
+
+/* 内联删除确认栏 */
+.hc-confirm {
+  margin-top:14px; padding-top:14px;
+  border-top:1px solid rgba(255,255,255,0.04);
+  display:none; align-items:center; gap:12px;
+  animation:confirmSlideIn 0.2s ease-out;
+}
+.hc-confirm-text {
+  font-size:13px; color:var(--blood-light); letter-spacing:1px; flex:1;
+}
+.hc-confirm-yes, .hc-confirm-no {
+  padding:5px 16px; min-height:32px; min-width:44px;
+  border:1px solid var(--text-muted); border-radius:0;
+  background:transparent; color:var(--text-dim);
+  font-size:12px; letter-spacing:1px; cursor:pointer;
+  font-family:inherit; transition:all 0.2s;
+}
+.hc-confirm-yes:hover {
+  border-color:var(--blood); color:var(--blood); background:rgba(192,57,43,0.06);
+}
+.hc-confirm-no:hover {
+  border-color:var(--text); color:var(--text);
+}
+
+/* 空状态 */
+.empty-archive {
+  text-align:center; padding:64px 24px;
+}
+.empty-archive svg {
+  width:56px; height:56px; display:block; margin:0 auto 20px;
+  color:var(--text-muted);
+}
+.empty-archive h4 {
+  font-size:18px; font-weight:600; color:var(--text-dim);
+  letter-spacing:2px; margin-bottom:8px;
+}
+.empty-archive p {
+  font-size:14px; color:var(--text-muted);
+  margin-bottom:24px; letter-spacing:1px;
+}
+.btn-go-incinerator {
+  padding:10px 28px; min-height:44px;
+  border:1px solid var(--gold-dim); border-radius:0;
+  background:transparent; color:var(--gold);
+  font-size:14px; font-weight:500; letter-spacing:2px;
+  cursor:pointer; font-family:inherit;
   transition:all 0.25s;
 }
-.history-item:hover { background:rgba(255,255,255,0.01); }
-.history-item:hover::before { border-color:var(--gold); background:var(--gold); }
-.history-item .hi-info { flex:1; min-width:0; }
-.history-item .hi-name { font-size:18px; color:var(--text); letter-spacing:1px; font-weight:600; }
-.history-item .hi-crime { font-size:13px; color:var(--flame); letter-spacing:1px; margin-top:2px; }
-.history-item .hi-date { font-size:12px; color:var(--text-muted); margin-top:4px; }
-.history-item .hi-verdict {
-  font-size:13px; color:var(--text-dim); line-height:1.5; margin-top:6px;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:280px;
+.btn-go-incinerator:hover {
+  background:rgba(200,164,78,0.08); border-color:var(--gold);
 }
-.history-item .btn-delete {
-  flex-shrink:0; padding:8px 16px; min-height:44px; min-width:44px;
-  border:1px solid transparent; border-radius:0;
+
+/* 加载更多 */
+.load-more-btn {
+  display:block; width:100%; margin-top:8px;
+  padding:14px 0; min-height:44px;
+  border:1px solid rgba(255,255,255,0.05); border-radius:0;
   background:transparent; color:var(--text-muted);
-  font-size:13px; cursor:pointer; transition:all 0.2s ease-out; letter-spacing:1px;
-  font-family:inherit;
+  font-size:13px; letter-spacing:2px;
+  cursor:pointer; font-family:inherit;
+  transition:all 0.25s;
 }
-.history-item .btn-delete:hover { border-color:var(--blood); color:var(--blood); background:transparent; }
-.history-item .btn-card {
-  flex-shrink:0; padding:8px 16px; min-height:44px; min-width:44px;
-  border:1px solid transparent; border-radius:0;
-  background:transparent; color:var(--text-dim);
-  font-size:13px; cursor:pointer; transition:all 0.2s ease-out; letter-spacing:1px;
-  font-family:inherit;
+.load-more-btn:hover {
+  border-color:rgba(200,164,78,0.15);
+  color:var(--text-dim);
+  background:rgba(255,255,255,0.01);
 }
-.history-item .btn-card:hover { border-color:var(--gold-dim); color:var(--gold); background:transparent; }
-.history-item.deleting { opacity:0.25; pointer-events:none; transform:translateX(20px); }
+
+/* 动画 */
+@keyframes cardSlideIn {
+  from { opacity:0; transform:translateY(16px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@keyframes cardBurnOut {
+  0% { opacity:1; transform:translateY(0); filter:blur(0); }
+  100% { opacity:0; transform:translateY(-20px); filter:blur(6px); }
+}
+@keyframes confirmSlideIn {
+  from { opacity:0; transform:translateY(-4px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
 @media (max-width:600px) {
-  .auth-modal, .nickname-modal { padding:28px 20px; }
-  .tab-btn { padding:8px 12px; font-size:12px; letter-spacing:0; }
-  .history-item { flex-direction:column; align-items:flex-start; }
-  .history-item .btn-delete { align-self:flex-end; margin-top:8px; }
-  .history-item .btn-card { align-self:flex-end; margin-top:8px; }
-  .history-item .hi-verdict { max-width:100%; }
-  .history-item::before { left:-17px; width:8px; height:8px; }
+  .history-panel h3 { font-size:24px; }
+  .hc-body { padding:16px; }
+  .hc-name { font-size:17px; }
+  .hc-header { flex-wrap:wrap; gap:8px; }
+  .hc-verdict { -webkit-line-clamp:2; font-size:13px; }
+  .hc-footer { flex-direction:column; align-items:flex-start; gap:10px; }
+  .hc-actions { align-self:flex-end; }
+  .empty-archive { padding:48px 20px; }
+  .empty-archive svg { width:44px; height:44px; }
+  .empty-archive h4 { font-size:16px; }
 }
 /* 升级引导 */
 .upgrade-prompt {
