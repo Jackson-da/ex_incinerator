@@ -1,5 +1,5 @@
 import { canvasWrapper, posterCanvas, fireCanvas, ctxPoster } from './dom.js';
-import { VERDICTS, pick } from './data.js';
+import { VERDICTS, GENERIC_VERDICTS, pick } from './data.js';
 import { wrapText } from './utils.js';
 import { STAMP_DURATION } from './config.js';
 
@@ -66,19 +66,64 @@ export function drawPosterStatic(ctx, w, h, name, crime) {
   const cx = w / 2; let cy = b3 + 30;
   ctx.fillStyle = '#1a0f0a';
   ctx.font = `bold ${w * 0.09}px 'STKaiti','KaiTi','楷体','SimSun',serif`;
-  ctx.textAlign = 'center'; ctx.fillText('情感通缉令', cx, cy);
+  ctx.textAlign = 'center';
+  const isMood = burnType === 'mood';
+  ctx.fillText(isMood ? '情绪焚烧令' : '情感通缉令', cx, cy);
   cy += h * 0.045;
 
   ctx.fillStyle = '#8b1a1a';
   ctx.font = `bold ${w * 0.11}px 'Times New Roman','STSong','SimSun',serif`;
-  ctx.fillText('★ WANTED ★', cx, cy);
+  ctx.fillText(isMood ? '★ INCINERATE ★' : '★ WANTED ★', cx, cy);
   cy += h * 0.035;
 
   ctx.strokeStyle = '#b8943e'; ctx.lineWidth = 0.8;
   ctx.beginPath(); ctx.moveTo(w * 0.2, cy); ctx.lineTo(w * 0.8, cy); ctx.stroke();
   cy += h * 0.04;
 
-  // 肖像区
+  if (isMood) {
+    // ── 焚烧令专属布局：火焰符号 + 焚烧对象 ──
+    const flameCY = cy + h * 0.09;
+    // 中心火焰/太阳符号
+    const flameR = w * 0.08;
+    ctx.fillStyle = '#1a0f0a';
+    ctx.beginPath(); ctx.arc(cx, flameCY, flameR, 0, Math.PI * 2); ctx.fill();
+    // 散射光线
+    ctx.strokeStyle = '#b8943e'; ctx.lineWidth = 1;
+    const rayCount = 12, rayInner = flameR + w * 0.015, rayOuter = flameR + w * 0.04;
+    for (let i = 0; i < rayCount; i++) {
+      const a = (i / rayCount) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * rayInner, flameCY + Math.sin(a) * rayInner);
+      ctx.lineTo(cx + Math.cos(a) * rayOuter, flameCY + Math.sin(a) * rayOuter);
+      ctx.stroke();
+    }
+    // 内部小火焰形状
+    ctx.fillStyle = '#f4e1b3';
+    ctx.beginPath();
+    ctx.moveTo(cx, flameCY - flameR * 0.55);
+    ctx.quadraticCurveTo(cx + flameR * 0.4, flameCY - flameR * 0.1, cx + flameR * 0.2, flameCY + flameR * 0.35);
+    ctx.quadraticCurveTo(cx + flameR * 0.05, flameCY + flameR * 0.1, cx, flameCY + flameR * 0.45);
+    ctx.quadraticCurveTo(cx - flameR * 0.05, flameCY + flameR * 0.1, cx - flameR * 0.2, flameCY + flameR * 0.35);
+    ctx.quadraticCurveTo(cx - flameR * 0.4, flameCY - flameR * 0.1, cx, flameCY - flameR * 0.55);
+    ctx.fill();
+
+    cy = flameCY + flameR + w * 0.04 + h * 0.035;
+    ctx.fillStyle = '#8b1a1a';
+    ctx.font = `${w * 0.035}px 'STKaiti','KaiTi','楷体',serif`;
+    ctx.fillText('【 焚 烧 对 象 】', cx, cy);
+    cy += h * 0.06;
+    nameY = cy;
+    cy += h * 0.07;
+
+    ctx.strokeStyle = '#b8943e'; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.moveTo(w * 0.15, cy); ctx.lineTo(w * 0.85, cy); ctx.stroke();
+    verdictStartY = cy + h * 0.04;
+    crimeLabelY = cy; // 占位，mood 无罪名标签
+    crimeLabelCenter = { x: cx, y: cy };
+    return verdictStartY;
+  }
+
+  // ── 通缉令布局（原版） ──
   const portraitSize = h * 0.18, portraitY = cy;
   ctx.strokeStyle = '#8b1a1a'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
   ctx.strokeRect(cx - portraitSize * 0.55, portraitY, portraitSize * 1.1, portraitSize);
@@ -153,10 +198,10 @@ export function drawVerdictFooter(ctx, w, h, verdictText) {
   ctx.fillStyle = '#8b1a1a';
   ctx.font = `bold ${w * 0.033}px 'STKaiti','KaiTi','楷体',serif`;
   ctx.textAlign = 'center';
-  ctx.fillText('情感国际法庭 · 终审判决', w / 2, cy);
+  ctx.fillText(burnType === 'mood' ? '情感国际法庭 · 焚烧仪式' : '情感国际法庭 · 终审判决', w / 2, cy);
   cy += h * 0.032;
   ctx.font = `${w * 0.026}px 'STKaiti','KaiTi','楷体',serif`;
-  ctx.fillText('不得上诉 · 立即执行', w / 2, cy);
+  ctx.fillText(burnType === 'mood' ? '灰烬之中 · 轻装前行' : '不得上诉 · 立即执行', w / 2, cy);
   const b3 = w * 0.06 + 14;
   stampParams.x = w - b3 - w * 0.1;
   stampParams.y = h - b3 - h * 0.1;
@@ -169,7 +214,7 @@ export function finalizeToSource(w, h, phase, currentName, selectedCrime, curren
   sctx.fillStyle = '#1a0f0a';
   sctx.textAlign = 'center';
   drawNameFit(sctx, cx, nameY, currentName, w);
-  drawCrimeLabel(sctx, w, h, selectedCrime);
+  if (burnType !== 'mood') drawCrimeLabel(sctx, w, h, selectedCrime);
   if (phase >= 2) {
     const lh = h * 0.042;
     sctx.fillStyle = '#1a0f0a';
@@ -185,10 +230,13 @@ export function finalizeToSource(w, h, phase, currentName, selectedCrime, curren
 }
 
 let selectedCrime = '';
+let burnType = 'ex';
 export function setSelectedCrime(c) { selectedCrime = c; }
+export function setBurnType(t) { burnType = t || 'ex'; }
 
 export function drawTypewriterFrame(ctx, w, h, lineHeight, typePhase, typewriterIndex, typewriterLines, currentName, selectedCrime) {
   const cx = w / 2;
+  const isMood = burnType === 'mood';
   ctx.fillStyle = '#1a0f0a';
   ctx.textAlign = 'center';
   if (typePhase === 0) {
@@ -196,7 +244,8 @@ export function drawTypewriterFrame(ctx, w, h, lineHeight, typePhase, typewriter
   } else {
     drawNameFit(ctx, cx, nameY, currentName, w);
   }
-  if (typePhase >= 1) {
+  // 罪名标签阶段（mood 跳过）
+  if (!isMood && typePhase >= 1) {
     if (typePhase === 1) {
       ctx.save();
       ctx.font = `bold ${w * 0.038}px 'STKaiti','KaiTi','楷体','SimSun',serif`;
@@ -219,8 +268,10 @@ export function drawTypewriterFrame(ctx, w, h, lineHeight, typePhase, typewriter
       drawCrimeLabel(ctx, w, h, selectedCrime);
     }
   }
-  if (typePhase >= 2) {
-    const chars = typePhase === 2 ? typewriterIndex : Infinity;
+  // 判词阶段
+  const verdictPhase = isMood ? 1 : 2;
+  if (typePhase >= verdictPhase) {
+    const chars = typePhase === verdictPhase ? typewriterIndex : Infinity;
     ctx.fillStyle = '#1a0f0a';
     ctx.font = `${w * 0.032}px 'STSong','SimSun','宋体',serif`;
     ctx.textAlign = 'center';
@@ -233,12 +284,16 @@ export function drawTypewriterFrame(ctx, w, h, lineHeight, typePhase, typewriter
       remaining -= show;
     }
   }
-  if (typePhase >= 3) {
+  // 页脚阶段
+  const footerPhase = isMood ? 2 : 3;
+  if (typePhase >= footerPhase) {
     const allLines = typewriterLines;
     const afterVerdict = verdictStartY + allLines.length * lineHeight + h * 0.03;
     ctx.strokeStyle = '#b8943e'; ctx.lineWidth = 0.6;
     ctx.beginPath(); ctx.moveTo(w * 0.2, afterVerdict); ctx.lineTo(w * 0.8, afterVerdict); ctx.stroke();
-    const footerLines = ['情感国际法庭 · 终审判决', '不得上诉 · 立即执行'];
+    const footerLines = isMood
+      ? ['情感国际法庭 · 焚烧仪式', '灰烬之中 · 轻装前行']
+      : ['情感国际法庭 · 终审判决', '不得上诉 · 立即执行'];
     const footerFonts = [`bold ${w * 0.033}px 'STKaiti','KaiTi','楷体',serif`, `${w * 0.026}px 'STKaiti','KaiTi','楷体',serif`];
     let fcy = afterVerdict + h * 0.03;
     let remaining = typewriterIndex;
@@ -260,7 +315,8 @@ export function renderPosterToSource(selectedCrime, currentName) {
   const w = posterCanvas.width, h = posterCanvas.height;
   sourceCanvas = new OffscreenCanvas(w, h);
   const ctx = sourceCanvas.getContext('2d');
-  const verdict = pick(VERDICTS[selectedCrime] || VERDICTS['冷暴力']);
+  const pool = VERDICTS[selectedCrime];
+  const verdict = pool ? pick(pool) : pick(GENERIC_VERDICTS).replace(/\{crime\}/g, selectedCrime);
   drawPosterStatic(ctx, w, h, currentName, selectedCrime);
   posterThumb = sourceCanvas.convertToBlob({ type: 'image/png' }).then(b => URL.createObjectURL(b));
   return verdict;
@@ -273,7 +329,9 @@ export function renderPosterToMain() {
 }
 
 // 为历史记录渲染完整通缉令海报（含印章）
-export function renderHistoryPoster(name, crime, verdict) {
+export function renderHistoryPoster(name, crime, verdict, recBurnType) {
+  const prevBurnType = burnType;
+  if (recBurnType) burnType = recBurnType;
   const w = 800, h = w / 0.72;
   const canvas = new OffscreenCanvas(w, h);
   const ctx = canvas.getContext('2d');
@@ -284,7 +342,7 @@ export function renderHistoryPoster(name, crime, verdict) {
   ctx.fillStyle = '#1a0f0a';
   ctx.textAlign = 'center';
   drawNameFit(ctx, cx, nameY, name, w);
-  drawCrimeLabel(ctx, w, h, crime);
+  if (burnType !== 'mood') drawCrimeLabel(ctx, w, h, crime);
 
   const lineHeight = h * 0.042;
   ctx.font = `${w * 0.032}px 'STSong','SimSun','宋体',serif`;
@@ -296,6 +354,7 @@ export function renderHistoryPoster(name, crime, verdict) {
   drawVerdictFooter(ctx, w, h, verdict);
   drawStamp(ctx, stampParams.x, stampParams.y, stampParams.r, 1.0, -0.3, 0.8);
 
+  burnType = prevBurnType;
   return canvas;
 }
 
@@ -357,7 +416,7 @@ export function drawStamp(ctx, x, y, r, scale, rot, alpha) {
   ctx.font = `bold ${fontSize}px 'STKaiti','KaiTi','楷体','STSong','SimSun','PingFang SC',serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillStyle = `rgba(244,225,179,${alpha * 0.93})`;
-  ctx.fillText('已判', 0, r * 0.02);
+  ctx.fillText(burnType === 'mood' ? '已焚' : '已判', 0, r * 0.02);
   ctx.restore();
 }
 
@@ -427,29 +486,42 @@ export function startTypewriter(w, h, ctxPoster, currentVerdict, currentName, se
 
   const lineHeight = h * 0.042;
   const nameChars = currentName.length;
-  const crimeChars = selectedCrime.length;
+  const crimeChars = burnType === 'mood' ? 0 : selectedCrime.length;
   let verdictTotal = 0;
   for (const l of typewriterLines) verdictTotal += l.length;
-  const footerTotal = '情感国际法庭 · 终审判决不得上诉 · 立即执行'.length;
-  const phaseLimits = [nameChars, crimeChars, verdictTotal, footerTotal];
-  const phaseSpeeds = [
-    Math.max(1, Math.ceil(nameChars / 8)),
-    Math.max(1, Math.ceil(crimeChars / 8)),
-    Math.max(1, Math.ceil(verdictTotal / 50)),
-    Math.max(1, Math.ceil(footerTotal / 12))
-  ];
+  const footerTotal = (burnType === 'mood'
+    ? '情感国际法庭 · 焚烧仪式灰烬之中 · 轻装前行'
+    : '情感国际法庭 · 终审判决不得上诉 · 立即执行').length;
+  const isMood = burnType === 'mood';
+  const phaseLimits = isMood
+    ? [nameChars, verdictTotal, footerTotal]
+    : [nameChars, crimeChars, verdictTotal, footerTotal];
+  const phaseSpeeds = isMood
+    ? [
+        Math.max(1, Math.ceil(nameChars / 8)),
+        Math.max(1, Math.ceil(verdictTotal / 50)),
+        Math.max(1, Math.ceil(footerTotal / 12))
+      ]
+    : [
+        Math.max(1, Math.ceil(nameChars / 8)),
+        Math.max(1, Math.ceil(crimeChars / 8)),
+        Math.max(1, Math.ceil(verdictTotal / 50)),
+        Math.max(1, Math.ceil(footerTotal / 12))
+      ];
+  const maxPhase = isMood ? 3 : 4;
 
   typewriterTimer = setInterval(() => {
     typewriterIndex += phaseSpeeds[typePhase];
     onTick();
 
-    while (typePhase < 4 && typewriterIndex >= phaseLimits[typePhase]) {
+    while (typePhase < maxPhase && typewriterIndex >= phaseLimits[typePhase]) {
       typewriterIndex = 0;
       typePhase++;
-      if (typePhase <= 1) finalizeToSource(w, h, typePhase, currentName, selectedCrime, currentVerdict, typewriterLines);
+      if (!isMood && typePhase <= 1) finalizeToSource(w, h, typePhase, currentName, selectedCrime, currentVerdict, typewriterLines);
+      else if (isMood && typePhase <= 0) finalizeToSource(w, h, typePhase, currentName, selectedCrime, currentVerdict, typewriterLines);
     }
 
-    if (typePhase >= 4) {
+    if (typePhase >= maxPhase) {
       clearInterval(typewriterTimer);
       typewriterTimer = null;
       finalizeToSource(w, h, 3, currentName, selectedCrime, currentVerdict, typewriterLines);

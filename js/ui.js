@@ -3,8 +3,9 @@ import { $, $$, phaseInput, phasePoster, phaseHealing, nameInput, crimeTagsEl, g
   authModalOverlay, authModalTitle, authModalSub, authEmail, authPassword, authPassword2,
   btnAuthSubmit, authError, btnSwitchMode, btnForgotPwd, btnShowLogin,
   canvasWrapper, posterCanvas, fireCanvas, flameBtnWrap, flameHint, shareCardCanvas, saveCardBtn,
-  cardModalOverlay, cardPreviewCanvas, btnCloseCard, btnCardDownload } from './dom.js';
-import { getShuffledCrimes } from './data.js';
+  cardModalOverlay, cardPreviewCanvas, btnCloseCard, btnCardDownload,
+  burnTypeRow, nameInputLabel, crimeGroup, customCrimeGroup, customCrimeInput } from './dom.js';
+import { getShuffledCrimes, BURN_TYPES } from './data.js';
 import { isLoggedIn, escapeHTML } from './utils.js';
 import { fetchBurnHistory, deleteBurnRecord } from './api.js';
 import { setCurrentUser, getCurrentUser } from './auth.js';
@@ -33,17 +34,72 @@ export function showPhase(phase) {
   phase.classList.add('active');
 }
 
-// ──── 罪名标签 ────
+// ──── 焚烧类型 + 罪名标签 ────
 let selectedCrime = null;
 let authMode = 'login';
 let recoveryToken = null;
+let selectedBurnType = 'ex';
 export function getSelectedCrime() { return selectedCrime; }
 export function setSelectedCrime(c) { selectedCrime = c; }
+export function getSelectedBurnType() { return selectedBurnType; }
+
+// SVG 图标
+const TYPE_ICONS = {
+  ex: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+  friend: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M1 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/><path d="M17 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  boss: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M12 12h.01"/></svg>',
+  mood: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M8 9s1.5 2 4 2 4-2 4-2"/><path d="M9 15c.83 1 2.5 2 3 2s2.17-1 3-2"/></svg>',
+  custom: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>'
+};
+
+export function initBurnTypePills() {
+  burnTypeRow.innerHTML = '';
+  BURN_TYPES.forEach(t => {
+    const pill = document.createElement('button');
+    pill.className = 'burn-type-pill' + (t.id === selectedBurnType ? ' active' : '');
+    pill.dataset.type = t.id;
+    pill.innerHTML = (TYPE_ICONS[t.id] || '') + t.label;
+    pill.addEventListener('click', () => selectBurnType(t.id));
+    burnTypeRow.appendChild(pill);
+  });
+}
+
+function selectBurnType(typeId) {
+  selectedBurnType = typeId;
+  // 更新 pill 选中态
+  burnTypeRow.querySelectorAll('.burn-type-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.type === typeId);
+  });
+  // 更新副标题
+  const info = BURN_TYPES.find(t => t.id === typeId);
+  const subtitle = document.querySelector('.app-subtitle');
+  if (subtitle && info) subtitle.textContent = info.subtitle;
+  // 更新输入框 label
+  if (nameInputLabel && info) nameInputLabel.textContent = info.inputLabel;
+  if (nameInput && info) nameInput.placeholder = info.inputPlaceholder;
+  // 罪名区 & 按钮文案
+  crimeGroup.style.display = 'none';
+  customCrimeGroup.style.display = 'none';
+  if (typeId === 'custom') {
+    customCrimeGroup.style.display = '';
+    selectedCrime = customCrimeInput.value.trim() || null;
+    generateBtn.textContent = '生 成 通 缉 令';
+  } else if (typeId === 'mood') {
+    // 情绪类型无罪名，直接用名称
+    selectedCrime = nameInput.value.trim() || null;
+    generateBtn.textContent = '生 成 焚 烧 令';
+  } else {
+    crimeGroup.style.display = '';
+    initCrimeTags();
+    generateBtn.textContent = '生 成 通 缉 令';
+  }
+  updateGenerateBtn();
+}
 
 export function initCrimeTags() {
   crimeTagsEl.innerHTML = '';
   selectedCrime = null;
-  const crimes = getShuffledCrimes();
+  const crimes = getShuffledCrimes(selectedBurnType);
   crimes.forEach(c => {
     const tag = document.createElement('span');
     tag.className = 'crime-tag';
@@ -66,7 +122,17 @@ function selectCrime(crime, el) {
 }
 
 export function updateGenerateBtn() {
-  generateBtn.disabled = !(nameInput.value.trim() && selectedCrime);
+  const hasName = !!nameInput.value.trim();
+  let hasCrime;
+  if (selectedBurnType === 'mood') {
+    selectedCrime = hasName ? nameInput.value.trim() : null;
+    hasCrime = hasName;
+  } else if (selectedBurnType === 'custom') {
+    hasCrime = !!customCrimeInput.value.trim();
+  } else {
+    hasCrime = !!selectedCrime;
+  }
+  generateBtn.disabled = !(hasName && hasCrime);
 }
 
 // ──── 认证弹窗 ────
@@ -132,12 +198,16 @@ export function hideAuthModal() {
 // ──── 焚烧历史面板 ────
 const PAGE_SIZE = 10;
 let _allRecords = [];
+let _filteredRecords = [];
 let _shownCount = 0;
+let _currentFilter = 'all';
 
 function showHistoryEmpty() {
   historyEmpty.style.display = 'block';
   const statsBar = $('#history-stats');
   if (statsBar) statsBar.style.display = 'none';
+  const filterBar = $('#history-filter');
+  if (filterBar) filterBar.style.display = 'none';
 }
 
 function updateStats(records) {
@@ -161,6 +231,33 @@ function refreshStatsAfterDelete() {
   }
   const countEl = $('#stats-count');
   if (countEl) countEl.textContent = remaining.length;
+}
+
+function applyFilter(filter) {
+  _currentFilter = filter;
+  historyList.innerHTML = '';
+  _shownCount = 0;
+  _filteredRecords = filter === 'all'
+    ? _allRecords
+    : _allRecords.filter(r => (r.burn_type || 'ex') === filter);
+
+  const filterBar = $('#history-filter');
+  if (filterBar) {
+    filterBar.querySelectorAll('.filter-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.filter === filter);
+    });
+  }
+
+  if (_filteredRecords.length === 0) {
+    historyEmpty.style.display = 'block';
+    const emptyMsg = historyEmpty.querySelector('p');
+    if (emptyMsg) emptyMsg.textContent = '该类别下暂无焚烧记录';
+    return;
+  }
+
+  historyEmpty.style.display = 'none';
+  updateStats(_filteredRecords);
+  renderNextPage();
 }
 
 function renderHistoryCard(rec, index) {
@@ -199,7 +296,8 @@ function renderHistoryCard(rec, index) {
     name: rec.ex_name,
     crime: rec.crime,
     verdict: rec.verdict,
-    quote: rec.heal_quote || ''
+    quote: rec.heal_quote || '',
+    burnType: rec.burn_type || 'ex'
   };
   card._recordId = rec.id;
 
@@ -211,18 +309,19 @@ function bindHistoryCardEvents(card) {
   // 卡片预览
   card.querySelector('.hc-btn-card').addEventListener('click', async (e) => {
     e.stopPropagation();
-    const { name, crime, verdict, quote } = card._data;
+    const { name, crime, verdict, quote, burnType } = card._data;
     cardModalOverlay.classList.add('active');
     const [{ drawCard }, { renderHistoryPoster }] = await Promise.all([
       import('./healing.js'),
       import('./poster.js')
     ]);
-    const posterThumb = renderHistoryPoster(name, crime, verdict);
+    const posterThumb = renderHistoryPoster(name, crime, verdict, burnType);
     await drawCard(cardPreviewCanvas, {
       name, crime, verdict,
       healQuoteText: quote,
       sourceThumb: posterThumb,
-      displayMaxWidth: window.innerWidth * 0.5
+      displayMaxWidth: window.innerWidth * 0.5,
+      burnType
     });
   });
 
@@ -275,7 +374,7 @@ function ensureLoadMoreBtn() {
 }
 
 function renderNextPage() {
-  const batch = _allRecords.slice(_shownCount, _shownCount + PAGE_SIZE);
+  const batch = _filteredRecords.slice(_shownCount, _shownCount + PAGE_SIZE);
   const startIndex = _shownCount;
 
   batch.forEach((rec, i) => {
@@ -285,10 +384,9 @@ function renderNextPage() {
 
   _shownCount += batch.length;
 
-  if (_shownCount < _allRecords.length) {
+  if (_shownCount < _filteredRecords.length) {
     const btn = ensureLoadMoreBtn();
     btn.style.display = '';
-    // 移到列表末尾
     historyList.appendChild(btn);
   } else {
     const btn = historyList.querySelector('.load-more-btn');
@@ -314,8 +412,15 @@ export async function loadHistoryPanel() {
   _allRecords = records;
   _shownCount = 0;
 
-  updateStats(records);
-  renderNextPage();
+  const filterBar = $('#history-filter');
+  if (filterBar) {
+    filterBar.style.display = '';
+    filterBar.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => applyFilter(tab.dataset.filter));
+    });
+  }
+
+  applyFilter(_currentFilter);
 
   // 卡片弹窗关闭/下载
   btnCloseCard.onclick = () => cardModalOverlay.classList.remove('active');
@@ -347,6 +452,12 @@ export function resetIncineratorUI() {
   upgradePrompt.style.display = 'none';
   selectedCrime = null;
   nameInput.value = '';
+  if (customCrimeInput) customCrimeInput.value = '';
   updateGenerateBtn();
-  initCrimeTags();
+  if (selectedBurnType !== 'custom' && selectedBurnType !== 'mood') {
+    initCrimeTags();
+  }
+  if (selectedBurnType === 'mood') {
+    generateBtn.textContent = '生 成 焚 烧 令';
+  }
 }

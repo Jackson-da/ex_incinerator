@@ -35,13 +35,20 @@
     <p class="app-subtitle">EX INCINERATOR</p>
     <div class="app-divider"></div>
     <div class="phase active" id="phase-input">
-      <div class="input-group">
-        <label>前任的名字 / 昵称</label>
-        <input type="text" id="name-input" placeholder="输入TA的名字..." maxlength="12">
+      <div class="burn-type-row" id="burn-type-row">
+        <!-- JS 动态填充 -->
       </div>
       <div class="input-group">
-        <label>选择罪名 <span style="color:var(--hot);font-size:13px;"><svg style="width:13px;height:13px;vertical-align:-2px;" viewBox="0 0 24 24" fill="var(--hot)" stroke="none"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> 本周热门</span></label>
+        <label for="name-input" id="name-input-label">前任的名字 / 昵称</label>
+        <input type="text" id="name-input" placeholder="输入TA的名字..." maxlength="12">
+      </div>
+      <div class="input-group" id="crime-group">
+        <label>选择罪名 <span class="hot-badge-label"><svg class="hot-badge-svg" viewBox="0 0 24 24" fill="var(--hot)"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> 本周热门</span></label>
         <div class="crime-tags" id="crime-tags"></div>
+      </div>
+      <div class="input-group" id="custom-crime-group" style="display:none;">
+        <label for="custom-crime-input">罪名描述</label>
+        <input type="text" id="custom-crime-input" placeholder="描述你要焚烧的，比如&ldquo;前任的猫&rdquo;..." maxlength="20">
       </div>
       <button id="generate-btn" disabled>生 成 通 缉 令</button>
     </div>
@@ -84,11 +91,19 @@
   <!-- 焚烧历史标签页 -->
   <div class="tab-content" id="tab-history">
     <div class="history-panel">
-      <p class="modal-sub">这些前任，已化为灰烬</p>
+      <p class="modal-sub">万千过往，尽归灰烬</p>
       <div class="history-stats" id="history-stats" style="display:none;">
         <span>共焚烧 <strong id="stats-count">0</strong> 位</span>
         <span class="stats-dot">·</span>
         <span>最近一次：<span id="stats-latest">-</span></span>
+      </div>
+      <div class="history-filter" id="history-filter">
+        <button class="filter-tab active" data-filter="all">全部</button>
+        <button class="filter-tab" data-filter="ex">前任</button>
+        <button class="filter-tab" data-filter="friend">朋友</button>
+        <button class="filter-tab" data-filter="boss">上司</button>
+        <button class="filter-tab" data-filter="mood">情绪</button>
+        <button class="filter-tab" data-filter="custom">自定义</button>
       </div>
       <div id="history-list"></div>
       <div id="history-empty" style="display:none;">

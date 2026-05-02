@@ -9,7 +9,7 @@ import {
   upgradePrompt, authModalOverlay, btnShowLogin, btnShowRegister, btnLogout, btnCloseModal,
   btnAuthSubmit, authEmail, authPassword, authPassword2, authError,
   btnSwitchMode, btnForgotPwd, btnUpgradeLogin, btnSkipUpgrade,
-  btnGoIncinerator,
+  btnGoIncinerator, customCrimeInput, customCrimeGroup,
 } from './dom.js';
 import * as posterMod from './poster.js';
 import * as burnMod from './burn.js';
@@ -98,24 +98,36 @@ function showHealingPhase() {
     if (p.alive) p.life = Math.min(p.life, 0.5);
   }
   const wasFreeUse = !isLoggedIn();
-  if (wasFreeUse) markFreeUsed();
+  if (wasFreeUse) { markFreeUsed(); console.log('[save] 未登录，跳过保存'); }
 
   setTimeout(() => {
     for (const p of burnMod.particlePool) p.alive = false;
     ctxPoster.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
     ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
     uiMod.showPhase(phaseHealing);
-    setHealQuote();
+    setHealQuote(uiMod.getSelectedBurnType());
     if (!wasFreeUse) {
       // 已登录用户自动保存到历史
+      console.log('[save] 已登录，准备保存记录, burnType:', uiMod.getSelectedBurnType());
       (async () => {
         const { saveBurnRecord } = await import('./api.js');
-        await saveBurnRecord({
+        const burnType = uiMod.getSelectedBurnType();
+        let crime;
+        if (burnType === 'mood') {
+          crime = currentName;
+        } else if (burnType === 'custom') {
+          crime = customCrimeInput.value.trim();
+        } else {
+          crime = uiMod.getSelectedCrime();
+        }
+        const { error } = await saveBurnRecord({
           ex_name: currentName,
-          crime: uiMod.getSelectedCrime(),
+          crime,
           verdict: currentVerdict,
-          heal_quote: healQuote.textContent
+          heal_quote: healQuote.textContent,
+          burn_type: burnType
         });
+        if (error) console.error('保存焚烧记录失败:', error.message);
       })();
     }
     if (wasFreeUse) {
@@ -123,13 +135,20 @@ function showHealingPhase() {
     } else {
       upgradePrompt.style.display = 'none';
     }
-    setTimeout(() => generateShareCard(currentName, uiMod.getSelectedCrime(), currentVerdict), 500);
+    setTimeout(() => {
+      const bt = uiMod.getSelectedBurnType();
+      const crime = bt === 'mood' ? currentName
+        : bt === 'custom' ? customCrimeInput.value.trim()
+        : uiMod.getSelectedCrime();
+      generateShareCard(currentName, crime, currentVerdict, bt);
+    }, 500);
   }, 600);
 }
 
 // ──── 长按逻辑 ────
 function onPointerDown(e) {
-  if (burnMod.isBurning || burnMod.isRevealing || posterMod.isStampAnimating || posterMod.typePhase < 4 || burnMod.burnProgress >= 1) return;
+  const typewriterDone = uiMod.getSelectedBurnType() === 'mood' ? posterMod.typePhase >= 3 : posterMod.typePhase >= 4;
+  if (burnMod.isBurning || burnMod.isRevealing || posterMod.isStampAnimating || !typewriterDone || burnMod.burnProgress >= 1) return;
   e.preventDefault(); isPressing = true;
   flameBtn.classList.add('pressing'); flameHint.textContent = '继续按住...';
   const circle = flameBtn.querySelector('.progress-ring circle');
@@ -165,7 +184,10 @@ function startBurning() {
 // ──── 生成通缉令 ────
 generateBtn.addEventListener('click', () => {
   currentName = nameInput.value.trim();
-  const selectedCrime = uiMod.getSelectedCrime();
+  const burnType = uiMod.getSelectedBurnType();
+  const selectedCrime = burnType === 'mood' ? currentName
+    : burnType === 'custom' ? customCrimeInput.value.trim()
+    : uiMod.getSelectedCrime();
   if (!currentName || !selectedCrime) return;
 
   if (!isLoggedIn() && !canFreeUseToday()) {
@@ -177,6 +199,7 @@ generateBtn.addEventListener('click', () => {
   burnMod.resetBurnState(); burnMod.resetRevealState();
   posterMod.resetPosterState();
   posterMod.setSelectedCrime(selectedCrime);
+  posterMod.setBurnType(burnType);
   flameBtnWrap.style.opacity = '1'; flameBtnWrap.style.transition = 'none';
   flameHint.textContent = '长按点燃';
   ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
@@ -209,25 +232,35 @@ restartBtn.addEventListener('click', () => {
   audioEngine.stopFire();
 });
 
+function getResolvedCrime() {
+  const bt = uiMod.getSelectedBurnType();
+  if (bt === 'mood') return currentName;
+  if (bt === 'custom') return customCrimeInput.value.trim();
+  return uiMod.getSelectedCrime();
+}
+
 // ──── 分享卡片保存 ────
 saveCardBtn.addEventListener('click', () => {
+  const crime = getResolvedCrime();
   const link = document.createElement('a');
-  link.download = `前任焚烧炉_${currentName}_${uiMod.getSelectedCrime()}.png`;
+  link.download = `前任焚烧炉_${currentName}_${crime}.png`;
   link.href = shareCardCanvas.toDataURL('image/png');
   link.click();
 });
 
 // ──── 点击分享卡片预览 ────
 shareCardCanvas.addEventListener('click', async () => {
+  const crime = getResolvedCrime();
   cardModalOverlay.classList.add('active');
   const { drawCard } = await import('./healing.js');
   await drawCard(cardPreviewCanvas, {
     name: currentName,
-    crime: uiMod.getSelectedCrime(),
+    crime,
     verdict: currentVerdict,
     healQuoteText: healQuote.textContent,
     sourceThumb: posterMod.sourceCanvas,
-    displayMaxWidth: window.innerWidth * 0.5
+    displayMaxWidth: window.innerWidth * 0.5,
+    burnType: uiMod.getSelectedBurnType()
   });
 });
 
@@ -381,9 +414,11 @@ window.addEventListener('resize', () => {
 
 // ──── 初始化 ────
 nameInput.addEventListener('input', uiMod.updateGenerateBtn);
+customCrimeInput.addEventListener('input', uiMod.updateGenerateBtn);
 
 // ──── 启动 ────
 async function init() {
+  uiMod.initBurnTypePills();
   uiMod.initCrimeTags();
   posterMod.resizeCanvases();
 

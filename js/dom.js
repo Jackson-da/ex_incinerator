@@ -12,6 +12,8 @@ export const tabContents = {
 // 焚烧炉主流程
 export const phaseInput = $('#phase-input'), phasePoster = $('#phase-poster'), phaseHealing = $('#phase-healing');
 export const nameInput = $('#name-input'), crimeTagsEl = $('#crime-tags'), generateBtn = $('#generate-btn');
+export const burnTypeRow = $('#burn-type-row'), nameInputLabel = $('#name-input-label');
+export const crimeGroup = $('#crime-group'), customCrimeGroup = $('#custom-crime-group'), customCrimeInput = $('#custom-crime-input');
 export const canvasWrapper = $('#canvas-wrapper');
 export const posterCanvas = $('#poster-canvas'), fireCanvas = $('#fire-canvas');
 export const flameBtn = $('#flame-btn'), flameBtnWrap = $('#flame-btn-wrap'), flameHint = $('.flame-hint');

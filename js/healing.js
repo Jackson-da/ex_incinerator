@@ -1,11 +1,12 @@
 import { shareCardCanvas, healQuote, saveCardBtn } from './dom.js';
 import { sourceCanvas } from './poster.js';
-import { HEALING_QUOTES, pick, getShuffledCrimes } from './data.js';
+import { HEALING_QUOTES, HEALING_QUOTES_BY_TYPE, pick } from './data.js';
 import { wrapText } from './utils.js';
 import { SHARE_URL } from './config.js';
 
-export function setHealQuote() {
-  healQuote.textContent = pick(HEALING_QUOTES);
+export function setHealQuote(burnType) {
+  const pool = (burnType && HEALING_QUOTES_BY_TYPE[burnType]) || HEALING_QUOTES;
+  healQuote.textContent = pick(pool);
   healQuote.style.animation = 'none'; healQuote.offsetHeight;
   healQuote.style.animation = 'fadeInUp 1s ease-out';
 }
@@ -53,7 +54,7 @@ function mulberry32(a) {
   return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 }
 
-export async function drawCard(canvas, { name, crime, verdict, healQuoteText, sourceThumb, displayMaxWidth }) {
+export async function drawCard(canvas, { name, crime, verdict, healQuoteText, sourceThumb, displayMaxWidth, burnType }) {
   const w = 2000, h = 1250;
   canvas.width = w; canvas.height = h;
   const maxW = displayMaxWidth || 640;
@@ -97,15 +98,20 @@ export async function drawCard(canvas, { name, crime, verdict, healQuoteText, so
   ctx.fillText('判　决　书', rx, 272);
 
   ctx.font = '52px "STSong","SimSun","宋体",serif';
-  ctx.fillText(`被告人　　${name}`, rx, 372);
-  ctx.fillText(`罪　名　　 ${crime}`, rx, 452);
+  if (burnType === 'mood') {
+    ctx.fillText(`焚烧对象　　${name}`, rx, 372);
+  } else {
+    ctx.fillText(`被告人　　${name}`, rx, 372);
+    ctx.fillText(`罪　名　　 ${crime}`, rx, 452);
+  }
 
   ctx.fillStyle = '#3a2a1a';
   ctx.font = '36px "STSong","SimSun","宋体",serif';
   const shortV = verdict.length > 80 ? verdict.substring(0, 80) + '...' : verdict;
   const vLines = wrapText(ctx, shortV, maxTW);
+  const verdictY = burnType === 'mood' ? 480 : 550;
   for (let i = 0; i < Math.min(vLines.length, 3); i++) {
-    ctx.fillText(vLines[i], rx, 550 + i * 56);
+    ctx.fillText(vLines[i], rx, verdictY + i * 56);
   }
 
   // 治愈语录
@@ -137,7 +143,7 @@ export async function drawCard(canvas, { name, crime, verdict, healQuoteText, so
   ctx.fillText('扫码体验', qrCX, qrY + qrSize + 36);
 }
 
-export async function generateShareCard(currentName, selectedCrime, currentVerdict) {
+export async function generateShareCard(currentName, selectedCrime, currentVerdict, burnType) {
   shareCardCanvas.style.display = 'block';
   saveCardBtn.style.display = 'block';
   await drawCard(shareCardCanvas, {
@@ -145,6 +151,7 @@ export async function generateShareCard(currentName, selectedCrime, currentVerdi
     crime: selectedCrime,
     verdict: currentVerdict,
     healQuoteText: healQuote.textContent,
-    sourceThumb: sourceCanvas
+    sourceThumb: sourceCanvas,
+    burnType
   });
 }
