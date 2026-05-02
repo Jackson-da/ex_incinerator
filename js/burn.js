@@ -81,13 +81,15 @@ export function renderParticles() {
 
 // ──── 燃烧 ────
 export let burnProgress = 0, isBurning = false, burnStartTime = 0;
-export let maxBurnRadius = 0, burnedBlocks = null, frameCount = 0;
+export let maxBurnRadius = 0, burnedCount = 0, frameCount = 0;
 export let convergePoint = null;
 export let postBurnStartTime = 0;
+let burnedGrid = null, burnMask = null, burnMaskCtx = null;
 
 export function resetBurnState() {
   burnProgress = 0; isBurning = false; burnStartTime = 0;
-  maxBurnRadius = 0; burnedBlocks = null; frameCount = 0;
+  maxBurnRadius = 0; burnMask = null; burnMaskCtx = null;
+  burnedGrid = null; burnedCount = 0; frameCount = 0;
   convergePoint = null; postBurnStartTime = 0;
 }
 
@@ -100,11 +102,15 @@ export function beginBurn() {
 export function initBurn() {
   const w = posterCanvas.width, h = posterCanvas.height;
   maxBurnRadius = Math.sqrt(w * w + h * h) * 0.65;
-  burnedBlocks = new Set(); frameCount = 0;
+  const cols = Math.ceil(w / BLOCK_SIZE), rows = Math.ceil(h / BLOCK_SIZE);
+  burnedGrid = new Uint8Array(cols * rows);
+  burnedCount = 0; frameCount = 0;
+  burnMask = new OffscreenCanvas(w, h);
+  burnMaskCtx = burnMask.getContext('2d');
   convergePoint = { x: crimeLabelCenter.x, y: crimeLabelCenter.y - 30 };
 }
 
-export function updateBurn(dt) {
+export function updateBurn(_dt) {
   frameCount++;
   const elapsed = performance.now() - burnStartTime;
   burnProgress = Math.min(elapsed / BURN_DURATION, 1.0);
@@ -113,28 +119,34 @@ export function updateBurn(dt) {
   const baseRadius = burnProgress * maxBurnRadius;
   const noiseScale = burnProgress > 0.05 ? 30 : 5;
   const cols = Math.ceil(w / BLOCK_SIZE), rows = Math.ceil(h / BLOCK_SIZE);
+  const freq = 0.015, timeOff = burnProgress * 2;
 
+  const newlyBurned = [];
   for (let by = 0; by < rows; by++) {
     for (let bx = 0; bx < cols; bx++) {
-      const key = `${bx},${by}`;
-      if (burnedBlocks.has(key)) continue;
+      const idx = by * cols + bx;
+      if (burnedGrid[idx]) continue;
       const bpx = bx * BLOCK_SIZE + BLOCK_SIZE / 2, bpy = by * BLOCK_SIZE + BLOCK_SIZE / 2;
       const dist = Math.sqrt((bpx - burnCX) ** 2 + (bpy - burnCY) ** 2);
-      const noise = fbm(bpx * 0.03, bpy * 0.03 + burnProgress * 2, 3) * noiseScale;
-      const jitter = (Math.random() - 0.5) * 8;
-      if (dist < baseRadius + noise + jitter) burnedBlocks.add(key);
+      const noise = fbm(bpx * freq, bpy * freq + timeOff, 3) * noiseScale;
+      if (dist < baseRadius + noise + ((Math.random() - 0.5) * 8)) {
+        burnedGrid[idx] = 1;
+        newlyBurned.push(bx, by);
+      }
     }
   }
+  burnedCount += newlyBurned.length >> 1;
 
+  // 增量绘制新燃烧块到 mask
+  for (let i = 0; i < newlyBurned.length; i += 2) {
+    burnMaskCtx.fillStyle = '#0a0a0a';
+    burnMaskCtx.fillRect(newlyBurned[i] * BLOCK_SIZE, newlyBurned[i + 1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+  }
+
+  // 合成：源图 + mask + 边缘光
   ctxPoster.clearRect(0, 0, w, h);
   ctxPoster.drawImage(sourceCanvas, 0, 0);
-  ctxPoster.fillStyle = '#0a0a0a';
-  ctxPoster.beginPath();
-  for (const key of burnedBlocks) {
-    const [bx, by] = key.split(',').map(Number);
-    ctxPoster.rect(bx * BLOCK_SIZE, by * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-  }
-  ctxPoster.fill();
+  ctxPoster.drawImage(burnMask, 0, 0);
 
   if (burnProgress < 0.95) {
     const edgeGlow = ctxPoster.createRadialGradient(burnCX, burnCY, baseRadius * 0.85, burnCX, burnCY, baseRadius + 15);
@@ -182,15 +194,16 @@ export function finishBurning() {
 // ──── 渐显动画 ────
 export let isRevealing = false;
 export let revealStartTime = 0;
-export let coveredBlocks = null;
+let coveredGrid = null, revealMask = null, revealMaskCtx = null;
 
 export function resetRevealState() {
-  isRevealing = false; revealStartTime = 0; coveredBlocks = null;
+  isRevealing = false; revealStartTime = 0;
+  coveredGrid = null; revealMask = null; revealMaskCtx = null;
 }
 
 export function forceCompleteReveal(canvas, srcCanvas) {
   isRevealing = false;
-  coveredBlocks = null;
+  coveredGrid = null; revealMask = null; revealMaskCtx = null;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (srcCanvas) ctx.drawImage(srcCanvas, 0, 0);
@@ -199,12 +212,12 @@ export function forceCompleteReveal(canvas, srcCanvas) {
 export function startReveal() {
   const w = posterCanvas.width, h = posterCanvas.height;
   const cols = Math.ceil(w / BLOCK_SIZE), rows = Math.ceil(h / BLOCK_SIZE);
-  coveredBlocks = new Set();
-  for (let by = 0; by < rows; by++) {
-    for (let bx = 0; bx < cols; bx++) {
-      coveredBlocks.add(`${bx},${by}`);
-    }
-  }
+  coveredGrid = new Uint8Array(cols * rows);
+  coveredGrid.fill(1);
+  revealMask = new OffscreenCanvas(w, h);
+  revealMaskCtx = revealMask.getContext('2d');
+  revealMaskCtx.fillStyle = '#0a0a0a';
+  revealMaskCtx.fillRect(0, 0, w, h);
   isRevealing = true;
   revealStartTime = performance.now();
 }
@@ -218,31 +231,37 @@ export function updateReveal() {
   const revealRadius = maxDist * (1 - progress);
   const noiseScale = progress > 0.05 ? 28 : 6;
   const cols = Math.ceil(w / BLOCK_SIZE), rows = Math.ceil(h / BLOCK_SIZE);
+  const freq = 0.0175, timeOff = progress * 2;
 
-  const toRemove = [];
-  for (const key of coveredBlocks) {
-    const [bx, by] = key.split(',').map(Number);
-    const bpx = bx * BLOCK_SIZE + BLOCK_SIZE / 2, bpy = by * BLOCK_SIZE + BLOCK_SIZE / 2;
-    const dist = Math.sqrt((bpx - cx) ** 2 + (bpy - cy) ** 2);
-    const noise = fbm(bpx * 0.035, bpy * 0.035 + progress * 2, 3) * noiseScale;
-    if (dist > revealRadius - noise) toRemove.push(key);
+  const newlyRevealed = [];
+  for (let by = 0; by < rows; by++) {
+    for (let bx = 0; bx < cols; bx++) {
+      const idx = by * cols + bx;
+      if (!coveredGrid[idx]) continue;
+      const bpx = bx * BLOCK_SIZE + BLOCK_SIZE / 2, bpy = by * BLOCK_SIZE + BLOCK_SIZE / 2;
+      const dist = Math.sqrt((bpx - cx) ** 2 + (bpy - cy) ** 2);
+      const noise = fbm(bpx * freq, bpy * freq + timeOff, 3) * noiseScale;
+      if (dist > revealRadius - noise) {
+        coveredGrid[idx] = 0;
+        newlyRevealed.push(bx, by);
+      }
+    }
   }
-  for (const key of toRemove) coveredBlocks.delete(key);
+
+  for (let i = 0; i < newlyRevealed.length; i += 2) {
+    revealMaskCtx.clearRect(newlyRevealed[i] * BLOCK_SIZE, newlyRevealed[i + 1] * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+  }
 
   ctxPoster.clearRect(0, 0, w, h);
   ctxPoster.drawImage(sourceCanvas, 0, 0);
-  ctxPoster.fillStyle = '#0a0a0a';
-  for (const key of coveredBlocks) {
-    const [bx, by] = key.split(',').map(Number);
-    ctxPoster.fillRect(bx * BLOCK_SIZE, by * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-  }
+  ctxPoster.drawImage(revealMask, 0, 0);
 
   if (progress >= 1) {
     isRevealing = false;
-    coveredBlocks = null;
+    coveredGrid = null; revealMask = null; revealMaskCtx = null;
     ctxPoster.clearRect(0, 0, w, h);
     ctxPoster.drawImage(sourceCanvas, 0, 0);
-    return true; // 渐显完成
+    return true;
   }
   return false;
 }
