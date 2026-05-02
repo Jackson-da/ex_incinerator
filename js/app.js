@@ -4,7 +4,7 @@ import {
   phaseInput, phasePoster, phaseHealing, nameInput, generateBtn,
   posterCanvas, fireCanvas, ctxPoster, ctxFire,
   flameBtn, flameBtnWrap, flameHint,
-  healQuote, restartBtn, shareCardCanvas, saveCardBtn, saveDbBtn, saveDbStatus,
+  healQuote, restartBtn, shareCardCanvas, saveCardBtn,
   upgradePrompt, authModalOverlay, btnShowLogin, btnLogout, btnCloseModal,
   btnAuthSubmit, authEmail, authPassword, authPassword2, authError,
   btnSwitchMode, btnForgotPwd, btnUpgradeLogin, btnSkipUpgrade,
@@ -104,6 +104,18 @@ function showHealingPhase() {
     ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
     uiMod.showPhase(phaseHealing);
     setHealQuote();
+    if (!wasFreeUse) {
+      // 已登录用户自动保存到历史
+      (async () => {
+        const { saveBurnRecord } = await import('./api.js');
+        await saveBurnRecord({
+          ex_name: currentName,
+          crime: uiMod.getSelectedCrime(),
+          verdict: currentVerdict,
+          heal_quote: healQuote.textContent
+        });
+      })();
+    }
     if (wasFreeUse) {
       upgradePrompt.style.display = 'block';
     } else {
@@ -201,30 +213,6 @@ saveCardBtn.addEventListener('click', () => {
   link.download = `前任焚烧炉_${currentName}_${uiMod.getSelectedCrime()}.png`;
   link.href = shareCardCanvas.toDataURL('image/png');
   link.click();
-});
-
-// ──── 保存到历史 ────
-saveDbBtn.addEventListener('click', async () => {
-  saveDbBtn.disabled = true;
-  saveDbStatus.style.display = 'block';
-  saveDbStatus.textContent = '保存中...';
-  saveDbStatus.style.color = 'var(--text-dim)';
-  const { saveBurnRecord } = await import('./api.js');
-  const { error } = await saveBurnRecord({
-    ex_name: currentName,
-    crime: uiMod.getSelectedCrime(),
-    verdict: currentVerdict,
-    heal_quote: healQuote.textContent
-  });
-  if (error) {
-    saveDbStatus.textContent = error.message;
-    saveDbStatus.style.color = 'var(--hot)';
-    saveDbBtn.disabled = false;
-  } else {
-    saveDbStatus.textContent = '已保存到历史';
-    saveDbStatus.style.color = 'var(--healing)';
-    saveDbBtn.style.display = 'none';
-  }
 });
 
 // ──── 长按事件 ────

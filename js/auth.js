@@ -1,7 +1,7 @@
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 import { authUserLabel, btnShowLogin, btnLogout, authModalOverlay, authModalTitle, authModalSub,
   authEmail, authPassword, authPassword2, btnAuthSubmit, authError, btnSwitchMode, btnForgotPwd,
-  upgradePrompt, saveDbBtn, saveDbStatus, phaseHealing } from './dom.js';
+  upgradePrompt, phaseHealing } from './dom.js';
 
 // 用户状态
 export let currentUser = null;

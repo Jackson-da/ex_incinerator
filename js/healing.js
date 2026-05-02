@@ -1,8 +1,7 @@
-import { shareCardCanvas, healQuote, saveCardBtn, saveDbBtn, saveDbStatus, upgradePrompt, phaseHealing } from './dom.js';
+import { shareCardCanvas, healQuote, saveCardBtn } from './dom.js';
 import { sourceCanvas } from './poster.js';
 import { HEALING_QUOTES, pick, getShuffledCrimes } from './data.js';
-import { wrapText, isLoggedIn } from './utils.js';
-import { getCurrentUser } from './auth.js';
+import { wrapText } from './utils.js';
 import { SHARE_URL } from './config.js';
 
 export function setHealQuote() {
@@ -140,11 +139,6 @@ export async function drawCard(canvas, { name, crime, verdict, healQuoteText, so
 export async function generateShareCard(currentName, selectedCrime, currentVerdict) {
   shareCardCanvas.style.display = 'block';
   saveCardBtn.style.display = 'block';
-  if (isLoggedIn()) {
-    saveDbBtn.style.display = 'block';
-    saveDbBtn.disabled = false;
-    saveDbStatus.style.display = 'none';
-  }
   await drawCard(shareCardCanvas, {
     name: currentName,
     crime: selectedCrime,
