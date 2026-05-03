@@ -83,10 +83,10 @@ BEGIN
   FROM burn_records br
   LEFT JOIN profiles p ON br.user_id = p.id
   LEFT JOIN LATERAL (
-    SELECT count(*) as cnt FROM feed_likes WHERE record_id = br.id
+    SELECT count(*) as cnt FROM feed_likes WHERE feed_likes.record_id = br.id
   ) lc ON true
   LEFT JOIN LATERAL (
-    SELECT count(*) as cnt FROM feed_comments WHERE record_id = br.id
+    SELECT count(*) as cnt FROM feed_comments WHERE feed_comments.record_id = br.id
   ) cc ON true
   LEFT JOIN feed_likes fl ON fl.record_id = br.id AND fl.user_id = p_current_user_id
   WHERE br.is_public = true
