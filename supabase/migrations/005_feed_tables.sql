@@ -5,7 +5,7 @@
 -- 点赞表
 CREATE TABLE IF NOT EXISTS public.feed_likes (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  record_id bigint REFERENCES public.burn_records(id) ON DELETE CASCADE NOT NULL,
+  record_id uuid REFERENCES public.burn_records(id) ON DELETE CASCADE NOT NULL,
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   created_at timestamptz DEFAULT now(),
   UNIQUE(record_id, user_id)
@@ -23,7 +23,7 @@ CREATE POLICY "Anyone can view likes" ON public.feed_likes
 -- 评论表
 CREATE TABLE IF NOT EXISTS public.feed_comments (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  record_id bigint REFERENCES public.burn_records(id) ON DELETE CASCADE NOT NULL,
+  record_id uuid REFERENCES public.burn_records(id) ON DELETE CASCADE NOT NULL,
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   content text NOT NULL CHECK (char_length(content) <= 200),
   created_at timestamptz DEFAULT now()
@@ -50,7 +50,7 @@ CREATE OR REPLACE FUNCTION get_public_feed(
   p_current_user_id uuid DEFAULT NULL
 )
 RETURNS TABLE(
-  record_id bigint,
+  record_id uuid,
   user_id uuid,
   nickname text,
   ex_name text,
@@ -99,13 +99,13 @@ $$;
 
 -- 2. 获取某条动态的评论
 CREATE OR REPLACE FUNCTION get_feed_comments(
-  p_record_id bigint,
+  p_record_id uuid,
   p_page int DEFAULT 1,
   p_page_size int DEFAULT 10
 )
 RETURNS TABLE(
   id bigint,
-  record_id bigint,
+  record_id uuid,
   user_id uuid,
   nickname text,
   content text,
@@ -132,7 +132,7 @@ $$;
 
 
 -- 3. 点赞/取消点赞
-CREATE OR REPLACE FUNCTION toggle_feed_like(p_record_id bigint)
+CREATE OR REPLACE FUNCTION toggle_feed_like(p_record_id uuid)
 RETURNS jsonb
 SECURITY DEFINER
 SET search_path = public
@@ -166,10 +166,10 @@ $$;
 
 
 -- 4. 添加评论
-CREATE OR REPLACE FUNCTION add_feed_comment(p_record_id bigint, p_content text)
+CREATE OR REPLACE FUNCTION add_feed_comment(p_record_id uuid, p_content text)
 RETURNS TABLE(
   id bigint,
-  record_id bigint,
+  record_id uuid,
   user_id uuid,
   nickname text,
   content text,
