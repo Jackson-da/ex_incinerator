@@ -121,7 +121,10 @@ function showHealingPhase() {
         } else {
           crime = uiMod.getSelectedCrime();
         }
+        const { getCurrentUser } = await import('./auth.js');
+        const user = getCurrentUser();
         const { data: savedRecord, error } = await saveBurnRecord({
+          user_id: user?.id,
           ex_name: currentName,
           crime,
           verdict: currentVerdict,
@@ -138,7 +141,15 @@ function showHealingPhase() {
           window._lastSavedRecordId = savedRecord.id;
           if (feedPublishEnabled) {
             const { publishToFeed } = await import('./api.js');
-            await publishToFeed(savedRecord.id);
+            const pubResult = await publishToFeed(savedRecord.id);
+            if (pubResult.error) {
+              console.error('发布到动态失败:', pubResult.error.message);
+              feedPublishStatus.style.display = '';
+              feedPublishStatus.querySelector('.feed-publish-confirmed').style.display = 'none';
+              feedPublishBtn.style.display = '';
+              feedPublishBtn.textContent = '发布失败，点此重试';
+              return;
+            }
           }
         }
 

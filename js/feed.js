@@ -251,8 +251,7 @@ async function loadMoreFeed() {
 
 // ──── 公开入口 ────
 export async function loadFeed() {
-  if (feedList.children.length > 0) return;
-
+  if (observer) { observer.disconnect(); observer = null; }
   feedList.innerHTML = '';
   feedEmpty.style.display = 'none';
   feedLoading.style.display = 'block';
