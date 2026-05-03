@@ -45,3 +45,9 @@ export const ctxPoster = posterCanvas.getContext('2d'), ctxFire = fireCanvas.get
 // 昵称
 export const nicknameOverlay = $('#nickname-overlay'), nicknameInput = $('#nickname-input');
 export const btnNicknameSubmit = $('#btn-nickname-submit');
+
+// 排行榜
+export const lbPodium = $('#lb-podium'), lbList = $('#lb-list');
+export const lbEmpty = $('#lb-empty'), lbLoading = $('#lb-loading');
+export const lbStats = $('#lb-stats'), lbUserCount = $('#lb-user-count'), lbBurnCount = $('#lb-burn-count');
+export const btnLbGoIncinerator = $('#btn-lb-go-incinerator');

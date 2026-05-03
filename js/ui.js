@@ -26,6 +26,9 @@ export function switchTab(tabName) {
   if (tabName === 'history' && isLoggedIn()) {
     loadHistoryPanel();
   }
+  if (tabName === 'leaderboard') {
+    import('./leaderboard.js').then(m => m.loadLeaderboard());
+  }
 }
 
 // ──── 阶段切换 ────

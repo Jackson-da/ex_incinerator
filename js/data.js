@@ -226,7 +226,6 @@ export const BURN_TYPES = [
   { id:'friend', label:'朋友', subtitle:'FRIENDSHIP INCINERATOR', inputLabel:'那个人的名字 / 昵称', inputPlaceholder:'输入TA的名字...' },
   { id:'boss', label:'上司', subtitle:'BOSS INCINERATOR', inputLabel:'上司的名字 / 昵称', inputPlaceholder:'输入TA的名字...' },
   { id:'mood', label:'情绪', subtitle:'MOOD INCINERATOR', inputLabel:'情绪 / 状态名称', inputPlaceholder:'比如"焦虑""拖延"...' },
-  { id:'custom', label:'自定义', subtitle:'EMOTIONAL INCINERATOR', inputLabel:'对象 / 名称', inputPlaceholder:'输入你要焚烧的...' },
 ];
 
 // ──── 各类型罪名 ────

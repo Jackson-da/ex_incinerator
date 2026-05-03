@@ -103,7 +103,6 @@
         <button class="filter-tab" data-filter="friend">朋友</button>
         <button class="filter-tab" data-filter="boss">上司</button>
         <button class="filter-tab" data-filter="mood">情绪</button>
-        <button class="filter-tab" data-filter="custom">自定义</button>
       </div>
       <div id="history-list"></div>
       <div id="history-empty" style="display:none;">
@@ -118,16 +117,34 @@
           <button class="btn-go-incinerator" id="btn-go-incinerator">前往焚烧炉 →</button>
         </div>
       </div>
-      <div id="history-loading" style="text-align:center; padding:48px 20px; color:var(--text-muted); letter-spacing:2px; font-size:14px;">加载中...</div>
+      <div id="history-loading" style="display:none; text-align:center; padding:48px 20px; color:var(--text-muted); letter-spacing:2px; font-size:14px;">加载中...</div>
     </div>
   </div>
 
-  <!-- 排行榜标签页（占位） -->
+  <!-- 排行榜标签页 -->
   <div class="tab-content" id="tab-leaderboard">
-    <div class="placeholder-tab">
-      <svg class="placeholder-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9z"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9z"/><path d="M4 22h16"/><path d="M10 22V2h4v20"/><path d="M8 22l-2-7h12l-2 7"/></svg>
-      <h3>焚烧排行榜</h3>
-      <p>排行榜功能即将上线<br>敬请期待</p>
+    <div class="leaderboard-panel">
+      <p class="modal-sub">万千焚烧，谁主沉浮</p>
+
+      <div class="lb-stats" id="lb-stats" style="display:none;">
+        <span>共 <strong id="lb-user-count">0</strong> 位焚烧者</span>
+        <span class="stats-dot">·</span>
+        <span>累计焚烧 <strong id="lb-burn-count">0</strong> 次</span>
+      </div>
+
+      <div class="lb-podium" id="lb-podium"></div>
+      <div class="lb-list" id="lb-list"></div>
+
+      <div id="lb-empty" style="display:none;">
+        <div class="empty-archive">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 6 9 6 9z"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 18 9 18 9z"/><path d="M4 22h16"/><path d="M10 22V2h4v20"/><path d="M8 22l-2-7h12l-2 7"/></svg>
+          <h4>排行榜空空如也</h4>
+          <p>还没有人焚烧过，来做第一个吧</p>
+          <button class="btn-go-incinerator" id="btn-lb-go-incinerator">前往焚烧炉 →</button>
+        </div>
+      </div>
+
+      <div id="lb-loading" style="text-align:center; padding:48px 20px; color:var(--text-muted); letter-spacing:2px; font-size:14px;">加载中...</div>
     </div>
   </div>
 

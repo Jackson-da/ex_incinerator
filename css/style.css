@@ -20,7 +20,7 @@
   --radius: 0px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-html,body { width:100%; height:100%; overflow-x:hidden; }
+html,body { width:100%; height:100%; overflow:hidden scroll; }
 html { scroll-behavior:smooth; }
 body {
   background:var(--bg-deep); color:var(--text);
@@ -86,7 +86,7 @@ body::after {
 #app {
   grid-column:2;
   position:relative; z-index:1; width:100%;
-  min-height:100vh; padding:80px 0 64px;
+  min-height:100vh; padding:100px 0 64px;
   display:flex; flex-direction:column; align-items:center;
   background:transparent;
   border:none;
@@ -127,6 +127,14 @@ body::after {
 }
 #name-input:focus { border-color:var(--flame); }
 #name-input::placeholder { color:var(--text-muted); }
+#custom-crime-input {
+  width:100%; padding:18px 20px; background:var(--bg-raised);
+  border:none; border-bottom:1px solid rgba(255,255,255,0.08);
+  border-radius:0; color:var(--text); font-size:22px; outline:none;
+  transition:border-color 0.3s; font-family:inherit;
+}
+#custom-crime-input:focus { border-color:var(--flame); }
+#custom-crime-input::placeholder { color:var(--text-muted); }
 .crime-tags { display:flex; flex-wrap:wrap; gap:10px; }
 .crime-tag {
   padding:10px 18px; border:1px solid rgba(255,255,255,0.08);
@@ -313,7 +321,7 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
 @media (max-width:600px) {
   body { grid-template-columns:1fr; }
   .top-bar { grid-template-columns:1fr; }
-  #app { grid-column:1; padding:72px 24px 48px; }
+  #app { grid-column:1; padding:88px 24px 48px; }
   .top-bar-inner { padding:0 16px; }
   .app-title { font-size:clamp(40px,10vw,56px); letter-spacing:-1px; }
   .app-subtitle { font-size:13px; letter-spacing:4px; }
@@ -324,19 +332,19 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
   .heal-quote { font-size:20px; }
   #name-input { font-size:18px; padding:16px 18px; }
   #generate-btn { font-size:16px; padding:16px 0; letter-spacing:4px; }
-  .tab-btn { padding:8px 12px; font-size:12px; letter-spacing:0; }
+  .tab-btn { padding:12px 18px; font-size:14px; letter-spacing:0; }
 }
 @media (min-width:601px) and (max-width:1023px) {
   body { grid-template-columns:2fr 3fr 2fr; }
   .top-bar { grid-template-columns:1fr 2fr 1fr; }
-  #app { padding-top:72px; }
+  #app { padding-top:96px; }
 }
 /* ──── 固定顶栏 ──── */
 .top-bar {
   position:fixed; top:0; left:0; right:0; z-index:100;
   display:grid;
   grid-template-columns:1fr 2fr 1fr;
-  height:56px;
+  height:75px;
   background:rgba(5,5,5,0.78); backdrop-filter:blur(20px);
   -webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid rgba(200,164,78,0.12);
@@ -353,14 +361,14 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
   display:flex; align-items:center; gap:8px;
   flex-shrink:0; margin-right:96px;
   text-decoration:none; color:var(--text);
-  font-size:24px; font-weight:700; letter-spacing:1px;
+  font-size:28px; font-weight:700; letter-spacing:1px;
   transition:opacity 0.2s ease-out;
 }
 .top-bar-logo:hover { opacity:0.8; }
-.top-bar-logo svg { width:36px; height:36px; color:var(--flame); }
+.top-bar-logo svg { width:42px; height:42px; color:var(--flame); }
 .tab-btn {
-  padding:10px 20px; border:1px solid transparent; border-radius:0;
-  background:transparent; color:var(--text-dim); font-size:14px;
+  padding:14px 24px; border:1px solid transparent; border-radius:0;
+  background:transparent; color:var(--text-dim); font-size:16px;
   font-weight:500; letter-spacing:1px;
   cursor:pointer; transition:all 0.2s ease-out;
   font-family:inherit; white-space:nowrap; flex-shrink:0;
@@ -371,7 +379,7 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
   background:transparent; box-shadow:none;
   font-weight:600;
 }
-.tab-icon { width:15px; height:15px; vertical-align:-2px; margin-right:3px; }
+.tab-icon { width:18px; height:18px; vertical-align:-3px; margin-right:4px; }
 /* SVG 图标统一样式 */
 .tab-content { display:none; flex-direction:column; align-items:center; width:100%; }
 .tab-content.active { display:flex; }
@@ -383,12 +391,12 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
 .btn-close svg { width:20px; height:20px; display:block; }
 /* 顶栏用户区 */
 .auth-user {
-  color:var(--text-dim); font-size:13px; letter-spacing:1px;
+  color:var(--text-dim); font-size:14px; letter-spacing:1px;
   cursor:pointer; flex-shrink:0; margin-left:auto;
 }
 .auth-user:hover { color:var(--text); }
 .btn-login, .btn-register, .btn-logout {
-  padding:7px 16px; border-radius:0; font-size:13px;
+  padding:9px 20px; border-radius:0; font-size:14px;
   cursor:pointer; transition:all 0.2s ease-out; font-family:inherit;
   background:transparent; letter-spacing:1px; flex-shrink:0;
 }
@@ -468,10 +476,6 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
 .history-panel h3 {
   font-size:28px; font-weight:700; color:var(--text); margin-bottom:6px; letter-spacing:2px;
 }
-.history-panel .modal-sub {
-  font-size:14px; color:var(--text-dim); margin-bottom:24px;
-}
-
 /* timeline 竖线 */
 .history-panel::before {
   content:''; position:absolute;
@@ -499,16 +503,15 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
 }
 .filter-tab {
   padding:6px 14px; min-height:36px;
-  border:1px solid transparent; border-radius:0;
+  border:1px solid transparent; border-bottom:2px solid transparent; border-radius:0;
   background:transparent; color:var(--text-muted);
-  font-size:13px; letter-spacing:1px;
+  font-size:13px; font-weight:500; letter-spacing:1px;
   cursor:pointer; transition:all 0.2s ease-out;
   font-family:inherit;
 }
 .filter-tab:hover { color:var(--text-dim); }
 .filter-tab.active {
-  color:var(--gold); border-bottom:2px solid var(--gold-dim);
-  font-weight:600;
+  color:var(--gold); border-bottom-color:var(--gold-dim);
 }
 
 /* ──── 焚烧卷宗档案卡 ──── */
@@ -738,6 +741,174 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
 }
 .donate-link a { color:var(--gold-dim); text-decoration:none; }
 .donate-link a:hover { color:var(--gold); }
+/* ════════ 排行榜 ════════ */
+.leaderboard-panel {
+  max-width:720px; margin:0 auto;
+}
+
+/* 统计栏 */
+.lb-stats {
+  font-size:13px; color:var(--text-muted); letter-spacing:1px;
+  margin-bottom:28px; padding-bottom:18px;
+  border-bottom:1px solid rgba(200,164,78,0.08);
+}
+.lb-stats strong { color:var(--gold-dim); font-weight:600; }
+
+/* ──── 领奖台 ──── */
+.lb-podium {
+  margin-bottom:32px;
+}
+.lb-podium-row {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:16px; margin-top:16px;
+}
+
+.lb-podium-card {
+  background:var(--bg-surface);
+  border:1px solid rgba(255,255,255,0.04);
+  padding:28px 24px;
+  text-align:center;
+  transition:transform 0.25s ease-out, box-shadow 0.25s ease-out;
+  position:relative; overflow:hidden;
+}
+.lb-podium-card:hover {
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
+}
+
+/* 颜色变体 */
+.lb-podium-card.gold {
+  border-color:rgba(200,164,78,0.25);
+  background:linear-gradient(180deg, rgba(200,164,78,0.04) 0%, var(--bg-surface) 40%);
+  box-shadow:0 0 40px rgba(200,164,78,0.06), inset 0 1px 0 rgba(200,164,78,0.06);
+}
+.lb-podium-card.gold:hover {
+  box-shadow:0 12px 32px rgba(0,0,0,0.4), 0 0 60px rgba(200,164,78,0.1);
+}
+.lb-podium-card.silver {
+  border-color:rgba(168,168,168,0.2);
+  background:linear-gradient(180deg, rgba(168,168,168,0.03) 0%, var(--bg-surface) 40%);
+}
+.lb-podium-card.bronze {
+  border-color:rgba(205,127,50,0.2);
+  background:linear-gradient(180deg, rgba(205,127,50,0.03) 0%, var(--bg-surface) 40%);
+}
+
+/* 当前用户标记 */
+.lb-podium-card.is-you::before {
+  content:''; position:absolute; left:0; top:0; bottom:0;
+  width:3px; background:var(--flame); opacity:0.7;
+}
+
+.lb-podium-badge {
+  display:flex; flex-direction:column; align-items:center; gap:4px; margin-bottom:12px;
+}
+.lb-podium-badge .lb-crown,
+.lb-podium-badge .lb-medal {
+  width:28px; height:28px;
+}
+.lb-podium-card.gold .lb-podium-badge .lb-crown { color:var(--gold); }
+.lb-podium-card.gold .lb-podium-badge .lb-medal { color:var(--gold); }
+.lb-podium-card.silver .lb-podium-badge .lb-medal { color:#A8A8A8; }
+.lb-podium-card.bronze .lb-podium-badge .lb-medal { color:#CD7F32; }
+
+.lb-podium-rank {
+  font-size:48px; font-weight:800; letter-spacing:-1px; line-height:1;
+  font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;
+}
+.lb-podium-card.gold .lb-podium-rank { color:var(--gold); }
+.lb-podium-card.silver .lb-podium-rank { color:#A8A8A8; }
+.lb-podium-card.bronze .lb-podium-rank { color:#CD7F32; }
+
+.lb-podium-nick {
+  font-size:20px; font-weight:700; color:var(--text);
+  letter-spacing:1px; margin-bottom:10px;
+}
+
+.lb-podium-stats {
+  font-size:13px; color:var(--text-dim); letter-spacing:1px;
+  display:flex; justify-content:center; flex-wrap:wrap; gap:2px;
+}
+.lb-podium-stats strong { color:var(--text); font-weight:600; }
+.lb-stats-sep { margin:0 6px; color:rgba(200,164,78,0.18); }
+
+/* ──── 排行列表 (#4+) ──── */
+.lb-rank-row {
+  display:flex; align-items:center; gap:16px;
+  padding:14px 18px;
+  background:var(--bg-surface);
+  border:1px solid rgba(255,255,255,0.02);
+  margin-bottom:4px;
+  transition:background 0.2s ease-out, transform 0.2s ease-out;
+  position:relative; overflow:hidden;
+}
+.lb-rank-row:hover {
+  background:rgba(255,255,255,0.015);
+  transform:translateX(4px);
+}
+.lb-rank-row.is-you {
+  border-left:3px solid var(--flame);
+  background:rgba(255,94,19,0.03);
+}
+
+.lb-rank-num {
+  font-size:15px; font-weight:700; color:var(--text-dim);
+  min-width:36px; letter-spacing:-0.5px;
+  font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;
+}
+.lb-rank-row:nth-child(-n+3) .lb-rank-num { color:var(--gold-dim); }
+
+.lb-rank-nick {
+  flex:1; font-size:16px; font-weight:600; color:var(--text);
+  letter-spacing:1px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+.lb-rank-crime {
+  font-size:12px; color:var(--flame); letter-spacing:2px;
+  padding:2px 10px;
+  border:1px solid rgba(255,94,19,0.12);
+  white-space:nowrap;
+}
+
+.lb-rank-count {
+  font-size:14px; font-weight:600; color:var(--gold-dim);
+  min-width:40px; text-align:right; letter-spacing:0.5px;
+  font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;
+}
+
+/* "你"标签 */
+.lb-you-tag {
+  display:inline-block; vertical-align:middle;
+  font-size:10px; font-weight:700; color:var(--flame);
+  padding:1px 6px; margin-left:6px;
+  border:1px solid rgba(255,94,19,0.3);
+  letter-spacing:1px; position:relative; top:-1px;
+}
+
+.lb-end-note {
+  text-align:center; padding:32px 0 16px;
+  font-size:13px; color:var(--text-muted); letter-spacing:2px;
+}
+
+/* 排行榜响应式 */
+@media (max-width:600px) {
+  .lb-podium-row {
+    grid-template-columns:1fr; gap:8px;
+  }
+  .lb-podium-card {
+    padding:22px 16px;
+  }
+  .lb-podium-rank { font-size:36px; }
+  .lb-podium-nick { font-size:17px; }
+  .lb-rank-row {
+    padding:12px 12px; gap:10px;
+  }
+  .lb-rank-num { font-size:13px; min-width:28px; }
+  .lb-rank-nick { font-size:14px; }
+  .lb-rank-crime { font-size:11px; padding:2px 8px; }
+  .lb-rank-count { font-size:13px; min-width:32px; }
+}
+
 /* 排行榜 & 动态 占位 */
 .placeholder-tab {
   text-align:center; padding:80px 20px; color:var(--text-dim);
