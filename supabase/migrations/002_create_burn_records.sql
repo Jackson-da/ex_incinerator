@@ -1,6 +1,6 @@
 -- 焚烧记录表
 CREATE TABLE IF NOT EXISTS public.burn_records (
-  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   ex_name text NOT NULL,
   crime text NOT NULL,

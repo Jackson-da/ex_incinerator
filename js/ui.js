@@ -29,6 +29,9 @@ export function switchTab(tabName) {
   if (tabName === 'leaderboard') {
     import('./leaderboard.js').then(m => m.loadLeaderboard());
   }
+  if (tabName === 'feed') {
+    import('./feed.js').then(m => m.loadFeed());
+  }
 }
 
 // ──── 阶段切换 ────
