@@ -50,6 +50,13 @@
         <label for="custom-crime-input">罪名描述</label>
         <input type="text" id="custom-crime-input" placeholder="描述你要焚烧的，比如&ldquo;前任的猫&rdquo;..." maxlength="20">
       </div>
+      <div class="publish-toggle-row" id="publish-toggle-row">
+        <label class="publish-toggle">
+          <input type="checkbox" id="publish-toggle-input" checked>
+          <span class="publish-toggle-slider"></span>
+          <span class="publish-toggle-label">发布到社区动态</span>
+        </label>
+      </div>
       <button id="generate-btn" disabled>生 成 通 缉 令</button>
     </div>
 
@@ -73,6 +80,13 @@
         <p class="heal-quote" id="heal-quote"></p>
         <canvas id="share-card-canvas" style="display:none;" aria-label="分享卡片"></canvas>
         <button id="save-card-btn" style="display:none;"><svg style="width:16px;height:16px;vertical-align:-3px;margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>保存分享卡片</button>
+        <div class="feed-publish-status" id="feed-publish-status" style="display:none;">
+          <span class="feed-publish-confirmed">
+            <svg class="feed-publish-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+            已发布到社区动态
+          </span>
+          <button class="feed-publish-btn" id="feed-publish-btn" style="display:none;">发布到社区动态</button>
+        </div>
         <button id="restart-btn">再 烧 一 个</button>
         <div class="upgrade-prompt" id="upgrade-prompt" style="display:none;">
           <div class="upgrade-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
@@ -148,12 +162,35 @@
     </div>
   </div>
 
-  <!-- 动态标签页（占位） -->
+  <!-- 动态标签页 -->
   <div class="tab-content" id="tab-feed">
-    <div class="placeholder-tab">
-      <svg class="placeholder-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <h3>焚烧动态</h3>
-      <p>社区动态功能即将上线<br>敬请期待</p>
+    <div class="feed-panel">
+      <p class="modal-sub">人间焚烧，尽收眼底</p>
+
+      <div id="feed-list"></div>
+
+      <div id="feed-empty" style="display:none;">
+        <div class="empty-archive">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            <line x1="9" y1="10" x2="15" y2="10"/>
+            <line x1="12" y1="10" x2="12" y2="16"/>
+          </svg>
+          <h4>社区还没有动态</h4>
+          <p>去焚烧炉做第一个吧</p>
+          <button class="btn-go-incinerator" id="btn-feed-go-incinerator">前往焚烧炉 →</button>
+        </div>
+      </div>
+
+      <div id="feed-loading" style="display:none;">
+        <div class="feed-skeleton">
+          <div class="feed-skeleton-card"><div class="feed-skeleton-shimmer"></div></div>
+          <div class="feed-skeleton-card"><div class="feed-skeleton-shimmer"></div></div>
+          <div class="feed-skeleton-card"><div class="feed-skeleton-shimmer"></div></div>
+        </div>
+      </div>
+
+      <div id="feed-sentinel" style="text-align:center; padding:24px; color:var(--text-muted); font-size:13px; letter-spacing:2px; display:none;">加载中...</div>
     </div>
   </div>
 </div>

@@ -51,3 +51,9 @@ export const lbPodium = $('#lb-podium'), lbList = $('#lb-list');
 export const lbEmpty = $('#lb-empty'), lbLoading = $('#lb-loading');
 export const lbStats = $('#lb-stats'), lbUserCount = $('#lb-user-count'), lbBurnCount = $('#lb-burn-count');
 export const btnLbGoIncinerator = $('#btn-lb-go-incinerator');
+
+// 动态
+export const feedList = $('#feed-list'), feedEmpty = $('#feed-empty'), feedLoading = $('#feed-loading');
+export const feedSentinel = $('#feed-sentinel');
+export const feedPublishToggle = $('#publish-toggle-input');
+export const feedPublishStatus = $('#feed-publish-status'), feedPublishBtn = $('#feed-publish-btn');

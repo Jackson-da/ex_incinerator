@@ -10,6 +10,7 @@ import {
   btnAuthSubmit, authEmail, authPassword, authPassword2, authError,
   btnSwitchMode, btnForgotPwd, btnUpgradeLogin, btnSkipUpgrade,
   btnGoIncinerator, btnLbGoIncinerator, customCrimeInput, customCrimeGroup,
+  feedPublishToggle, feedPublishStatus, feedPublishBtn,
 } from './dom.js';
 import * as posterMod from './poster.js';
 import * as burnMod from './burn.js';
@@ -28,6 +29,7 @@ let currentName = '', currentVerdict = '';
 let pressTimer = null, isPressing = false;
 let lastTime = 0, animFrameId = null;
 let audioInited = false;
+let feedPublishEnabled = true;
 
 // ──── 动画循环 ────
 function ensureAnimLoop() {
@@ -107,7 +109,6 @@ function showHealingPhase() {
     uiMod.showPhase(phaseHealing);
     setHealQuote(uiMod.getSelectedBurnType());
     if (!wasFreeUse) {
-      // 已登录用户自动保存到历史
       console.log('[save] 已登录，准备保存记录, burnType:', uiMod.getSelectedBurnType());
       (async () => {
         const { saveBurnRecord } = await import('./api.js');
@@ -120,14 +121,36 @@ function showHealingPhase() {
         } else {
           crime = uiMod.getSelectedCrime();
         }
-        const { error } = await saveBurnRecord({
+        const { data: savedRecord, error } = await saveBurnRecord({
           ex_name: currentName,
           crime,
           verdict: currentVerdict,
           heal_quote: healQuote.textContent,
           burn_type: burnType
         });
-        if (error) console.error('保存焚烧记录失败:', error.message);
+        if (error) {
+          console.error('保存焚烧记录失败:', error.message);
+          return;
+        }
+
+        // 发布到动态
+        if (savedRecord) {
+          window._lastSavedRecordId = savedRecord.id;
+          if (feedPublishEnabled) {
+            const { publishToFeed } = await import('./api.js');
+            await publishToFeed(savedRecord.id);
+          }
+        }
+
+        // 显示发布状态
+        feedPublishStatus.style.display = '';
+        if (feedPublishEnabled) {
+          feedPublishStatus.querySelector('.feed-publish-confirmed').style.display = '';
+          feedPublishBtn.style.display = 'none';
+        } else {
+          feedPublishStatus.querySelector('.feed-publish-confirmed').style.display = 'none';
+          feedPublishBtn.style.display = '';
+        }
       })();
     }
     if (wasFreeUse) {
@@ -229,6 +252,7 @@ restartBtn.addEventListener('click', () => {
   ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
   for (const p of burnMod.particlePool) p.alive = false;
   uiMod.resetIncineratorUI();
+  feedPublishStatus.style.display = 'none';
   audioEngine.stopFire();
 });
 
@@ -403,6 +427,25 @@ btnSkipUpgrade.addEventListener('click', () => {
   upgradePrompt.style.display = 'none';
 });
 
+// 补发到动态
+feedPublishBtn.addEventListener('click', async () => {
+  feedPublishBtn.disabled = true;
+  feedPublishBtn.textContent = '发布中...';
+  const { publishToFeed } = await import('./api.js');
+  const { error } = await publishToFeed(window._lastSavedRecordId);
+  if (error) {
+    feedPublishBtn.disabled = false;
+    feedPublishBtn.textContent = '发布到社区动态';
+    return;
+  }
+  feedPublishBtn.style.display = 'none';
+  feedPublishStatus.querySelector('.feed-publish-confirmed').style.display = '';
+});
+
+// feed 空态跳转
+const btnFeedGo = document.getElementById('btn-feed-go-incinerator');
+if (btnFeedGo) btnFeedGo.addEventListener('click', () => uiMod.switchTab('incinerator'));
+
 // ──── 首次交互启动音频 ────
 document.body.addEventListener('pointerdown', () => {
   if (!audioInited) { audioInited = true; audioEngine.init(); }
@@ -417,6 +460,11 @@ window.addEventListener('resize', () => {
 // ──── 初始化 ────
 nameInput.addEventListener('input', uiMod.updateGenerateBtn);
 customCrimeInput.addEventListener('input', uiMod.updateGenerateBtn);
+
+// 发布开关
+feedPublishToggle.addEventListener('change', () => {
+  feedPublishEnabled = feedPublishToggle.checked;
+});
 
 // ──── 启动 ────
 async function init() {
