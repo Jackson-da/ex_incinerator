@@ -14,6 +14,10 @@ export const phaseInput = $('#phase-input'), phasePoster = $('#phase-poster'), p
 export const nameInput = $('#name-input'), crimeTagsEl = $('#crime-tags'), generateBtn = $('#generate-btn');
 export const burnTypeRow = $('#burn-type-row'), nameInputLabel = $('#name-input-label');
 export const crimeGroup = $('#crime-group'), customCrimeGroup = $('#custom-crime-group'), customCrimeInput = $('#custom-crime-input');
+export const aiInputGroup = $('#ai-input-group'), aiInput = $('#ai-input');
+export const aiReviewPanel = $('#ai-review-panel'), aiReviewName = $('#ai-review-name');
+export const aiReviewCrime = $('#ai-review-crime'), aiReviewVerdict = $('#ai-review-verdict');
+export const aiConfirmBtn = $('#ai-confirm-btn'), aiRetryBtn = $('#ai-retry-btn');
 export const canvasWrapper = $('#canvas-wrapper');
 export const posterCanvas = $('#poster-canvas'), fireCanvas = $('#fire-canvas');
 export const flameBtn = $('#flame-btn'), flameBtnWrap = $('#flame-btn-wrap'), flameHint = $('.flame-hint');

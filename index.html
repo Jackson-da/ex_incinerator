@@ -50,6 +50,32 @@
         <label for="custom-crime-input">罪名描述</label>
         <input type="text" id="custom-crime-input" placeholder="描述你要焚烧的，比如&ldquo;前任的猫&rdquo;..." maxlength="20">
       </div>
+      <div class="input-group" id="ai-input-group" style="display:none;">
+        <label for="ai-input">描述TA的&ldquo;罪行&rdquo;</label>
+        <textarea id="ai-input" placeholder="描述你们之间发生了什么，AI审判官会帮你提炼罪人、罪名和判决文。&#10;&#10;比如：谈了两年，每次吵架他就玩消失，短则三天长则一周，回来跟没事人一样……" maxlength="500" rows="4"></textarea>
+        <p class="ai-hint">AI将根据你的描述，自动提炼罪人名字、罪名和判决文</p>
+      </div>
+      <div class="ai-review-panel" id="ai-review-panel" style="display:none;">
+        <p class="ai-review-title">AI 审判结果 — 请审查修改</p>
+        <div class="ai-review-fields">
+          <div class="ai-review-field">
+            <label for="ai-review-name">罪人名字</label>
+            <input type="text" id="ai-review-name" maxlength="10">
+          </div>
+          <div class="ai-review-field">
+            <label for="ai-review-crime">罪名</label>
+            <input type="text" id="ai-review-crime" maxlength="8">
+          </div>
+          <div class="ai-review-field ai-review-field-verdict">
+            <label for="ai-review-verdict">判决文</label>
+            <textarea id="ai-review-verdict" rows="3" maxlength="200"></textarea>
+          </div>
+        </div>
+        <div class="ai-review-actions">
+          <button id="ai-confirm-btn">确认，生成通缉令</button>
+          <button id="ai-retry-btn" class="ai-retry-btn">返回修改描述</button>
+        </div>
+      </div>
       <div class="publish-toggle-row" id="publish-toggle-row">
         <label class="publish-toggle">
           <input type="checkbox" id="publish-toggle-input" checked>
@@ -117,6 +143,7 @@
         <button class="filter-tab" data-filter="friend">朋友</button>
         <button class="filter-tab" data-filter="boss">上司</button>
         <button class="filter-tab" data-filter="mood">情绪</button>
+        <button class="filter-tab" data-filter="ai">AI</button>
       </div>
       <div id="history-list"></div>
       <div id="history-empty" style="display:none;">

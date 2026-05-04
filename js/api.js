@@ -18,20 +18,36 @@ export async function saveBurnRecord(data) {
   return { data: rows[0], error: null };
 }
 
-export async function fetchBurnHistory() {
-  console.log('[fetchBurnHistory] 开始拉取...');
-  const res = await fetch(
-    SUPABASE_URL + '/rest/v1/burn_records?select=*&order=burned_at.desc',
-    { headers: authHeaders() }
-  );
+export async function fetchBurnHistoryPaged({ filterType, page, pageSize = 10 }) {
+  const offset = (page - 1) * pageSize;
+  let url = `${SUPABASE_URL}/rest/v1/burn_records?select=*&order=burned_at.desc&limit=${pageSize}&offset=${offset}`;
+  if (filterType && filterType !== 'all') {
+    url += `&burn_type=eq.${filterType}`;
+  }
+  const res = await fetch(url, { headers: authHeaders() });
   if (!res.ok) {
-    const errText = await res.text();
-    console.error('[fetchBurnHistory] 失败 HTTP', res.status, errText);
+    console.error('[fetchBurnHistoryPaged] 失败 HTTP', res.status);
     return [];
   }
-  const data = await res.json();
-  console.log('[fetchBurnHistory] 拉取到', data.length, '条');
-  return data;
+  return await res.json();
+}
+
+export async function fetchBurnHistoryCount(filterType) {
+  let url = `${SUPABASE_URL}/rest/v1/burn_records?select=id&limit=1`;
+  if (filterType && filterType !== 'all') {
+    url += `&burn_type=eq.${filterType}`;
+  }
+  const res = await fetch(url, {
+    headers: authHeaders({ 'Prefer': 'count=exact' })
+  });
+  if (!res.ok) return 0;
+  // Content-Range: 0-0/42 → total=42
+  const range = res.headers.get('content-range');
+  if (range) {
+    const parts = range.split('/');
+    return parseInt(parts[parts.length - 1], 10) || 0;
+  }
+  return 0;
 }
 
 export async function deleteBurnRecord(id) {
@@ -131,4 +147,16 @@ export async function fetchFeedComments(recordId, page = 1, pageSize = 10) {
     return [];
   }
   return await res.json();
+}
+
+// ──── AI 智能审判 ────
+export async function aiJudge(input) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/ai-judge`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ input })
+  });
+  const data = await res.json();
+  if (!res.ok) return { error: { message: data.error || 'AI调用失败' } };
+  return { data, error: null };
 }

@@ -134,6 +134,75 @@ body::after {
   transition:border-color 0.3s; font-family:inherit;
 }
 #custom-crime-input:focus { border-color:var(--flame); }
+#ai-input {
+  width:100%; padding:16px 18px; background:var(--bg-raised);
+  border:none; border-bottom:1px solid rgba(255,255,255,0.08);
+  border-radius:0; color:var(--text); font-size:17px; outline:none;
+  transition:border-color 0.3s; font-family:inherit; resize:vertical;
+  line-height:1.6; min-height:120px;
+}
+#ai-input:focus { border-color:var(--flame); }
+#ai-input::placeholder { color:var(--text-muted); }
+.ai-hint {
+  margin-top:8px; font-size:12px; color:var(--text-muted);
+  letter-spacing:0.5px; line-height:1.4;
+}
+@media (max-width:600px) {
+  #ai-input { font-size:15px; padding:14px 16px; min-height:100px; }
+}
+
+/* AI 审查面板 */
+.ai-review-panel {
+  width:100%; margin-bottom:32px;
+  padding:24px; background:var(--bg-surface);
+  border:1px solid rgba(200,164,78,0.15);
+  border-radius:4px;
+}
+.ai-review-title {
+  font-size:14px; font-weight:500; color:var(--gold);
+  letter-spacing:1px; margin-bottom:20px; text-align:center;
+}
+.ai-review-fields { display:flex; flex-direction:column; gap:16px; }
+.ai-review-field { display:flex; flex-direction:column; gap:6px; }
+.ai-review-field label {
+  font-size:13px; font-weight:500; color:var(--text-dim);
+  letter-spacing:0.5px;
+}
+.ai-review-field input,
+.ai-review-field textarea {
+  width:100%; padding:14px 16px; background:var(--bg-raised);
+  border:none; border-bottom:1px solid rgba(255,255,255,0.08);
+  border-radius:0; color:var(--text); font-size:16px; outline:none;
+  transition:border-color 0.3s; font-family:inherit;
+}
+.ai-review-field input:focus,
+.ai-review-field textarea:focus { border-color:var(--flame); }
+.ai-review-field-verdict textarea {
+  resize:vertical; min-height:90px; line-height:1.6; font-size:15px;
+}
+.ai-review-actions {
+  display:flex; gap:12px; margin-top:24px;
+}
+#ai-confirm-btn {
+  flex:1; padding:14px 20px; background:var(--flame); color:#fff;
+  border:none; border-radius:0; font-size:16px; font-weight:600;
+  letter-spacing:2px; cursor:pointer; transition:background 0.3s;
+  font-family:inherit;
+}
+#ai-confirm-btn:hover { background:var(--flame-glow); }
+#ai-confirm-btn:disabled { opacity:0.5; cursor:not-allowed; }
+.ai-retry-btn {
+  padding:14px 18px; background:transparent;
+  border:1px solid rgba(255,255,255,0.1); border-radius:0;
+  color:var(--text-dim); font-size:14px; cursor:pointer;
+  transition:border-color 0.3s, color 0.3s; font-family:inherit;
+  letter-spacing:1px;
+}
+.ai-retry-btn:hover { border-color:var(--text-muted); color:var(--text); }
+@media (max-width:600px) {
+  .ai-review-panel { padding:18px; }
+  .ai-review-actions { flex-direction:column; }
+}
 #custom-crime-input::placeholder { color:var(--text-muted); }
 .crime-tags { display:flex; flex-wrap:wrap; gap:10px; }
 .crime-tag {
@@ -675,8 +744,20 @@ canvas.fire-layer { z-index:3; pointer-events:none; }
 .load-more-btn:hover {
   border-color:rgba(200,164,78,0.15);
   color:var(--text-dim);
-  background:rgba(255,255,255,0.01);
 }
+.history-end {
+  text-align:center; padding:20px 0; margin-top:8px;
+  color:var(--text-muted); font-size:13px; letter-spacing:2px;
+}
+#feed-sentinel {
+  display:block; width:100%; margin-top:8px; min-height:44px;
+  padding:14px 0; text-align:center;
+  border:1px solid rgba(255,255,255,0.05); border-radius:0;
+  background:transparent;
+  font-size:13px; letter-spacing:2px; font-family:inherit;
+  transition:all 0.25s;
+}
+#feed-sentinel:hover { border-color:rgba(200,164,78,0.15); }
 
 /* 动画 */
 @keyframes cardSlideIn {

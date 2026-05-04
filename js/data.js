@@ -226,6 +226,7 @@ export const BURN_TYPES = [
   { id:'friend', label:'朋友', subtitle:'FRIENDSHIP INCINERATOR', inputLabel:'那个人的名字 / 昵称', inputPlaceholder:'输入TA的名字...' },
   { id:'boss', label:'上司', subtitle:'BOSS INCINERATOR', inputLabel:'上司的名字 / 昵称', inputPlaceholder:'输入TA的名字...' },
   { id:'mood', label:'情绪', subtitle:'MOOD INCINERATOR', inputLabel:'情绪 / 状态名称', inputPlaceholder:'比如"焦虑""拖延"...' },
+  { id:'ai', label:'AI', subtitle:'AI JUDGE', inputLabel:'', inputPlaceholder:'' },
 ];
 
 // ──── 各类型罪名 ────
@@ -259,7 +260,8 @@ export const CRIMES_BY_TYPE = {
     { name:'拖延症', hot:false }, { name:'完美主义', hot:false },
     { name:'社交恐惧', hot:false }, { name:'精神内耗', hot:false }
   ],
-  custom: null
+  custom: null,
+  ai: null
 };
 
 // ──── 通用判词（自定义类型用） ────
@@ -321,6 +323,16 @@ export const HEALING_QUOTES_BY_TYPE = {
     '这世上没有过不去的坎，只有过不去的人。',
     '把你消耗掉的，都不值得你再回头。',
     '每一次焚烧，都是一次重生。',
+    '你不是在放弃，你是在清理内存。'
+  ],
+  ai: [
+    '灰烬之中，才能开出新的花。',
+    '每一次焚烧，都是一次重生。',
+    '把你消耗掉的，都不值得你再回头。',
+    'AI已审判，你可以安心放下了。',
+    '判决已下，从此以后，轻装前行。',
+    '告别不是为了遗忘，而是为了轻装上阵。',
+    '有些东西，烧掉比留着更有意义。',
     '你不是在放弃，你是在清理内存。'
   ]
 };

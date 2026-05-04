@@ -4,10 +4,11 @@ import { $, $$, phaseInput, phasePoster, phaseHealing, nameInput, crimeTagsEl, g
   btnAuthSubmit, authError, btnSwitchMode, btnForgotPwd, btnShowLogin,
   canvasWrapper, posterCanvas, fireCanvas, flameBtnWrap, flameHint, shareCardCanvas, saveCardBtn,
   cardModalOverlay, cardPreviewCanvas, btnCloseCard, btnCardDownload,
-  burnTypeRow, nameInputLabel, crimeGroup, customCrimeGroup, customCrimeInput } from './dom.js';
+  burnTypeRow, nameInputLabel, crimeGroup, customCrimeGroup, customCrimeInput,
+  aiInputGroup, aiInput, aiReviewPanel } from './dom.js';
 import { getShuffledCrimes, BURN_TYPES } from './data.js';
 import { isLoggedIn, escapeHTML } from './utils.js';
-import { fetchBurnHistory, deleteBurnRecord } from './api.js';
+import { fetchBurnHistoryPaged, fetchBurnHistoryCount, deleteBurnRecord } from './api.js';
 import { setCurrentUser, getCurrentUser } from './auth.js';
 import { stopTypewriter } from './poster.js';
 
@@ -55,7 +56,8 @@ const TYPE_ICONS = {
   friend: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M1 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/><path d="M17 3.13a4 4 0 0 1 0 7.75"/></svg>',
   boss: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M12 12h.01"/></svg>',
   mood: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M8 9s1.5 2 4 2 4-2 4-2"/><path d="M9 15c.83 1 2.5 2 3 2s2.17-1 3-2"/></svg>',
-  custom: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>'
+  custom: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>',
+  ai: '<svg class="type-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-3 3.87V16h4v2h-4v4h-2v-4H7v-2h4v-4.13A4 4 0 0 1 8 8V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="6" r="1" fill="currentColor"/><circle cx="15" cy="6" r="1" fill="currentColor"/></svg>'
 };
 
 export function initBurnTypePills() {
@@ -86,14 +88,24 @@ function selectBurnType(typeId) {
   // 罪名区 & 按钮文案
   crimeGroup.style.display = 'none';
   customCrimeGroup.style.display = 'none';
+  aiInputGroup.style.display = 'none';
+  aiReviewPanel.style.display = 'none';
+  generateBtn.style.display = '';
+  nameInput.style.display = '';
+  nameInputLabel.style.display = '';
   if (typeId === 'custom') {
     customCrimeGroup.style.display = '';
     selectedCrime = customCrimeInput.value.trim() || null;
     generateBtn.textContent = '生 成 通 缉 令';
   } else if (typeId === 'mood') {
-    // 情绪类型无罪名，直接用名称
     selectedCrime = nameInput.value.trim() || null;
     generateBtn.textContent = '生 成 焚 烧 令';
+  } else if (typeId === 'ai') {
+    aiInputGroup.style.display = '';
+    nameInput.style.display = 'none';
+    nameInputLabel.style.display = 'none';
+    selectedCrime = null;
+    generateBtn.textContent = 'AI 智 能 审 判';
   } else {
     crimeGroup.style.display = '';
     initCrimeTags();
@@ -130,7 +142,10 @@ function selectCrime(crime, el) {
 export function updateGenerateBtn() {
   const hasName = !!nameInput.value.trim();
   let hasCrime;
-  if (selectedBurnType === 'mood') {
+  if (selectedBurnType === 'ai') {
+    generateBtn.disabled = !aiInput.value.trim();
+    return;
+  } else if (selectedBurnType === 'mood') {
     selectedCrime = hasName ? nameInput.value.trim() : null;
     hasCrime = hasName;
   } else if (selectedBurnType === 'custom') {
@@ -203,10 +218,11 @@ export function hideAuthModal() {
 
 // ──── 焚烧历史面板 ────
 const PAGE_SIZE = 10;
-let _allRecords = [];
-let _filteredRecords = [];
-let _shownCount = 0;
 let _currentFilter = 'all';
+let _currentPage = 1;
+let _hasMore = false;
+let _loadingMore = false;
+let _totalCount = 0;
 
 function showHistoryEmpty() {
   historyEmpty.style.display = 'block';
@@ -216,14 +232,14 @@ function showHistoryEmpty() {
   if (filterBar) filterBar.style.display = 'none';
 }
 
-function updateStats(records) {
+function updateStats(latestRecord) {
   const statsBar = $('#history-stats');
   if (!statsBar) return;
   statsBar.style.display = '';
   const countEl = $('#stats-count'), latestEl = $('#stats-latest');
-  if (countEl) countEl.textContent = records.length;
-  if (latestEl && records.length > 0) {
-    latestEl.textContent = new Date(records[0].burned_at).toLocaleDateString('zh-CN', {
+  if (countEl) countEl.textContent = _totalCount;
+  if (latestEl && latestRecord) {
+    latestEl.textContent = new Date(latestRecord.burned_at).toLocaleDateString('zh-CN', {
       year: 'numeric', month: 'long', day: 'numeric'
     });
   }
@@ -235,17 +251,18 @@ function refreshStatsAfterDelete() {
     showHistoryEmpty();
     return;
   }
+  _totalCount = Math.max(0, _totalCount - 1);
   const countEl = $('#stats-count');
-  if (countEl) countEl.textContent = remaining.length;
+  if (countEl) countEl.textContent = _totalCount;
 }
 
-function applyFilter(filter) {
+async function applyFilter(filter) {
   _currentFilter = filter;
+  _currentPage = 1;
+  _hasMore = false;
   historyList.innerHTML = '';
-  _shownCount = 0;
-  _filteredRecords = filter === 'all'
-    ? _allRecords
-    : _allRecords.filter(r => (r.burn_type || 'ex') === filter);
+  historyEmpty.style.display = 'none';
+  historyLoading.style.display = 'block';
 
   const filterBar = $('#history-filter');
   if (filterBar) {
@@ -254,16 +271,80 @@ function applyFilter(filter) {
     });
   }
 
-  if (_filteredRecords.length === 0) {
-    historyEmpty.style.display = 'block';
-    const emptyMsg = historyEmpty.querySelector('p');
-    if (emptyMsg) emptyMsg.textContent = '该类别下暂无焚烧记录';
+  // 并发获取第一页和总数
+  const [records, count] = await Promise.all([
+    fetchBurnHistoryPaged({ filterType: filter, page: 1, pageSize: PAGE_SIZE }),
+    fetchBurnHistoryCount(filter)
+  ]);
+
+  historyLoading.style.display = 'none';
+  _totalCount = count;
+  if (!records || records.length === 0) {
+    showHistoryEmpty();
     return;
   }
 
-  historyEmpty.style.display = 'none';
-  updateStats(_filteredRecords);
-  renderNextPage();
+  _hasMore = records.length === PAGE_SIZE;
+  updateStats(records[0]);
+
+  records.forEach((rec, i) => {
+    historyList.appendChild(renderHistoryCard(rec, i));
+  });
+
+  if (_hasMore) {
+    const btn = historyList.querySelector('.load-more-btn');
+    if (!btn) historyList.appendChild(ensureLoadMoreBtn());
+    else btn.style.display = '';
+  } else {
+    const end = document.createElement('p');
+    end.className = 'history-end';
+    end.textContent = '— 已经到底了 —';
+    historyList.appendChild(end);
+  }
+}
+
+async function loadMoreHistory() {
+  if (_loadingMore || !_hasMore) return;
+  _loadingMore = true;
+  const oldEnd = historyList.querySelector('.history-end');
+  if (oldEnd) oldEnd.remove();
+  const btn = historyList.querySelector('.load-more-btn');
+  if (btn) btn.textContent = '加载中...';
+
+  _currentPage++;
+  const records = await fetchBurnHistoryPaged({
+    filterType: _currentFilter,
+    page: _currentPage,
+    pageSize: PAGE_SIZE
+  });
+
+  _loadingMore = false;
+  if (!records || records.length === 0) {
+    _hasMore = false;
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+
+  _hasMore = records.length === PAGE_SIZE;
+  const existing = historyList.querySelectorAll('.history-card').length;
+
+  // 先移除按钮，追加卡片后再放回末尾
+  let btnReplacement;
+  if (btn) { btn.remove(); btnReplacement = btn; }
+
+  records.forEach((rec, i) => {
+    historyList.appendChild(renderHistoryCard(rec, existing + i));
+  });
+
+  if (_hasMore) {
+    btnReplacement.textContent = '加载更多卷宗 ↓';
+    historyList.appendChild(btnReplacement);
+  } else {
+    const end = document.createElement('p');
+    end.className = 'history-end';
+    end.textContent = '— 已经到底了 —';
+    historyList.appendChild(end);
+  }
 }
 
 function renderHistoryCard(rec, index) {
@@ -371,33 +452,9 @@ function ensureLoadMoreBtn() {
   btn = document.createElement('button');
   btn.className = 'load-more-btn';
   btn.textContent = '加载更多卷宗 ↓';
-  btn.addEventListener('click', () => {
-    btn.style.display = 'none';
-    renderNextPage();
-  });
+  btn.addEventListener('click', loadMoreHistory);
   historyList.appendChild(btn);
   return btn;
-}
-
-function renderNextPage() {
-  const batch = _filteredRecords.slice(_shownCount, _shownCount + PAGE_SIZE);
-  const startIndex = _shownCount;
-
-  batch.forEach((rec, i) => {
-    const card = renderHistoryCard(rec, startIndex + i);
-    historyList.appendChild(card);
-  });
-
-  _shownCount += batch.length;
-
-  if (_shownCount < _filteredRecords.length) {
-    const btn = ensureLoadMoreBtn();
-    btn.style.display = '';
-    historyList.appendChild(btn);
-  } else {
-    const btn = historyList.querySelector('.load-more-btn');
-    if (btn) btn.style.display = 'none';
-  }
 }
 
 export async function loadHistoryPanel() {
@@ -405,28 +462,20 @@ export async function loadHistoryPanel() {
   historyEmpty.style.display = 'none';
   const statsBar = $('#history-stats');
   if (statsBar) statsBar.style.display = 'none';
-  historyLoading.style.display = 'block';
-
-  const records = await fetchBurnHistory();
-  historyLoading.style.display = 'none';
-
-  if (!records || records.length === 0) {
-    showHistoryEmpty();
-    return;
-  }
-
-  _allRecords = records;
-  _shownCount = 0;
+  _currentFilter = 'all';
+  _currentPage = 1;
+  _hasMore = false;
+  _totalCount = 0;
 
   const filterBar = $('#history-filter');
   if (filterBar) {
     filterBar.style.display = '';
     filterBar.querySelectorAll('.filter-tab').forEach(tab => {
-      tab.addEventListener('click', () => applyFilter(tab.dataset.filter));
+      tab.onclick = () => applyFilter(tab.dataset.filter);
     });
   }
 
-  applyFilter(_currentFilter);
+  await applyFilter('all');
 
   // 卡片弹窗关闭/下载
   btnCloseCard.onclick = () => cardModalOverlay.classList.remove('active');
@@ -459,11 +508,16 @@ export function resetIncineratorUI() {
   selectedCrime = null;
   nameInput.value = '';
   if (customCrimeInput) customCrimeInput.value = '';
+  if (aiInput) aiInput.value = '';
   updateGenerateBtn();
-  if (selectedBurnType !== 'custom' && selectedBurnType !== 'mood') {
+  if (selectedBurnType !== 'custom' && selectedBurnType !== 'mood' && selectedBurnType !== 'ai') {
     initCrimeTags();
   }
   if (selectedBurnType === 'mood') {
     generateBtn.textContent = '生 成 焚 烧 令';
+  } else if (selectedBurnType === 'ai') {
+    generateBtn.textContent = 'AI 智 能 审 判';
   }
+  // 确保当前类型 UI 状态正确（AI 输入区可见性等）
+  selectBurnType(selectedBurnType);
 }
