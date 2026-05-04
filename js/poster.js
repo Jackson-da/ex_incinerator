@@ -310,13 +310,13 @@ export function drawTypewriterFrame(ctx, w, h, lineHeight, typePhase, typewriter
   }
 }
 
-export function renderPosterToSource(selectedCrime, currentName) {
+export function renderPosterToSource(selectedCrime, currentName, aiVerdict) {
   resizeCanvases();
   const w = posterCanvas.width, h = posterCanvas.height;
   sourceCanvas = new OffscreenCanvas(w, h);
   const ctx = sourceCanvas.getContext('2d');
-  const pool = VERDICTS[selectedCrime];
-  const verdict = pool ? pick(pool) : pick(GENERIC_VERDICTS).replace(/\{crime\}/g, selectedCrime);
+  const verdict = aiVerdict
+    || (VERDICTS[selectedCrime] ? pick(VERDICTS[selectedCrime]) : pick(GENERIC_VERDICTS).replace(/\{crime\}/g, selectedCrime));
   drawPosterStatic(ctx, w, h, currentName, selectedCrime);
   posterThumb = sourceCanvas.convertToBlob({ type: 'image/png' }).then(b => URL.createObjectURL(b));
   return verdict;

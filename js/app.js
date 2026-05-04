@@ -11,6 +11,8 @@ import {
   btnSwitchMode, btnForgotPwd, btnUpgradeLogin, btnSkipUpgrade,
   btnGoIncinerator, btnLbGoIncinerator, customCrimeInput, customCrimeGroup,
   feedPublishToggle, feedPublishStatus, feedPublishBtn,
+  aiInput, aiInputGroup, aiReviewPanel, aiReviewName, aiReviewCrime, aiReviewVerdict,
+  aiConfirmBtn, aiRetryBtn,
 } from './dom.js';
 import * as posterMod from './poster.js';
 import * as burnMod from './burn.js';
@@ -26,6 +28,7 @@ import { canFreeUseToday, markFreeUsed, isLoggedIn } from './utils.js';
 
 // ──── 流程状态 ────
 let currentName = '', currentVerdict = '';
+let aiHealQuote = '';
 let pressTimer = null, isPressing = false;
 let lastTime = 0, animFrameId = null;
 let audioInited = false;
@@ -107,7 +110,13 @@ function showHealingPhase() {
     ctxPoster.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
     ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
     uiMod.showPhase(phaseHealing);
-    setHealQuote(uiMod.getSelectedBurnType());
+    if (uiMod.getSelectedBurnType() === 'ai' && aiHealQuote) {
+      healQuote.textContent = aiHealQuote;
+      healQuote.style.animation = 'none'; healQuote.offsetHeight;
+      healQuote.style.animation = 'fadeInUp 1s ease-out';
+    } else {
+      setHealQuote(uiMod.getSelectedBurnType());
+    }
     if (!wasFreeUse) {
       console.log('[save] 已登录，准备保存记录, burnType:', uiMod.getSelectedBurnType());
       (async () => {
@@ -216,40 +225,54 @@ function startBurning() {
 }
 
 // ──── 生成通缉令 ────
-generateBtn.addEventListener('click', () => {
-  currentName = nameInput.value.trim();
+generateBtn.addEventListener('click', async () => {
   const burnType = uiMod.getSelectedBurnType();
-  const selectedCrime = burnType === 'mood' ? currentName
-    : burnType === 'custom' ? customCrimeInput.value.trim()
-    : uiMod.getSelectedCrime();
-  if (!currentName || !selectedCrime) return;
+  let selectedCrime;
+  let aiVerdict;
 
-  if (!isLoggedIn() && !canFreeUseToday()) {
-    uiMod.showAuthModal('login');
-    return;
+  if (burnType === 'ai') {
+    const aiInputVal = aiInput.value.trim();
+    if (!aiInputVal) return;
+
+    if (!isLoggedIn() && !canFreeUseToday()) {
+      uiMod.showAuthModal('login');
+      return;
+    }
+
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'AI 正在审理案件...';
+    const { aiJudge } = await import('./api.js');
+    const { data, error } = await aiJudge(aiInputVal);
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'AI 智 能 审 判';
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    // 显示审查面板
+    aiReviewName.value = data.ex_name;
+    aiReviewCrime.value = data.crime;
+    aiReviewVerdict.value = data.verdict;
+    aiHealQuote = data.heal_quote || '';
+    aiInputGroup.style.display = 'none';
+    generateBtn.style.display = 'none';
+    aiReviewPanel.style.display = '';
+    return; // 等待用户确认
+  } else {
+    currentName = nameInput.value.trim();
+    selectedCrime = burnType === 'mood' ? currentName
+      : burnType === 'custom' ? customCrimeInput.value.trim()
+      : uiMod.getSelectedCrime();
+    if (!currentName || !selectedCrime) return;
+
+    if (!isLoggedIn() && !canFreeUseToday()) {
+      uiMod.showAuthModal('login');
+      return;
+    }
   }
 
-  // 重置状态
-  burnMod.resetBurnState(); burnMod.resetRevealState();
-  posterMod.resetPosterState();
-  posterMod.setSelectedCrime(selectedCrime);
-  posterMod.setBurnType(burnType);
-  flameBtnWrap.style.opacity = '1'; flameBtnWrap.style.transition = 'none';
-  flameHint.textContent = '长按点燃';
-  ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
-  ctxPoster.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
-  for (const p of burnMod.particlePool) p.alive = false;
-  phaseInput.classList.add('leaving');
-  setTimeout(() => {
-    phaseInput.classList.remove('leaving');
-    uiMod.showPhase(phasePoster);
-    currentVerdict = posterMod.renderPosterToSource(selectedCrime, currentName);
-    ctxPoster.fillStyle = '#0a0a0a';
-    ctxPoster.fillRect(0, 0, posterCanvas.width, posterCanvas.height);
-    audioEngine.playReveal();
-    burnMod.startReveal();
-    ensureAnimLoop();
-  }, 350);
+  startPosterPhase(burnType, selectedCrime, currentName, aiVerdict);
 });
 
 // ──── 重新开始 ────
@@ -263,6 +286,7 @@ restartBtn.addEventListener('click', () => {
   ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
   for (const p of burnMod.particlePool) p.alive = false;
   uiMod.resetIncineratorUI();
+  aiHealQuote = '';
   feedPublishStatus.style.display = 'none';
   audioEngine.stopFire();
 });
@@ -438,6 +462,50 @@ btnSkipUpgrade.addEventListener('click', () => {
   upgradePrompt.style.display = 'none';
 });
 
+// AI 审查确认 → 生成通缉令
+aiConfirmBtn.addEventListener('click', () => {
+  const burnType = uiMod.getSelectedBurnType();
+  currentName = aiReviewName.value.trim();
+  const crime = aiReviewCrime.value.trim();
+  const verdict = aiReviewVerdict.value.trim();
+  if (!currentName || !crime || !verdict) return;
+
+  uiMod.setSelectedCrime(crime);
+  startPosterPhase(burnType, crime, currentName, verdict);
+});
+
+// AI 返回修改描述
+aiRetryBtn.addEventListener('click', () => {
+  aiReviewPanel.style.display = 'none';
+  generateBtn.style.display = '';
+  aiInputGroup.style.display = '';
+});
+
+function startPosterPhase(burnType, selectedCrime, currentName, aiVerdict) {
+  burnMod.resetBurnState(); burnMod.resetRevealState();
+  posterMod.resetPosterState();
+  posterMod.setSelectedCrime(selectedCrime);
+  posterMod.setBurnType(burnType);
+  flameBtnWrap.style.opacity = '1'; flameBtnWrap.style.transition = 'none';
+  flameHint.textContent = '长按点燃';
+  ctxFire.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+  ctxPoster.clearRect(0, 0, posterCanvas.width, posterCanvas.height);
+  for (const p of burnMod.particlePool) p.alive = false;
+  aiReviewPanel.style.display = 'none';
+  generateBtn.style.display = '';
+  phaseInput.classList.add('leaving');
+  setTimeout(() => {
+    phaseInput.classList.remove('leaving');
+    uiMod.showPhase(phasePoster);
+    currentVerdict = posterMod.renderPosterToSource(selectedCrime, currentName, aiVerdict);
+    ctxPoster.fillStyle = '#0a0a0a';
+    ctxPoster.fillRect(0, 0, posterCanvas.width, posterCanvas.height);
+    audioEngine.playReveal();
+    burnMod.startReveal();
+    ensureAnimLoop();
+  }, 350);
+}
+
 // 补发到动态
 feedPublishBtn.addEventListener('click', async () => {
   feedPublishBtn.disabled = true;
@@ -471,6 +539,7 @@ window.addEventListener('resize', () => {
 // ──── 初始化 ────
 nameInput.addEventListener('input', uiMod.updateGenerateBtn);
 customCrimeInput.addEventListener('input', uiMod.updateGenerateBtn);
+aiInput.addEventListener('input', uiMod.updateGenerateBtn);
 
 // 发布开关
 feedPublishToggle.addEventListener('change', () => {

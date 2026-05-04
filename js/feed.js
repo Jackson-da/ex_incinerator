@@ -7,7 +7,6 @@ const PAGE_SIZE = 10;
 let currentPage = 0;
 let hasMore = true;
 let loadingMore = false;
-let observer = null;
 let expandedCommentCard = null;
 
 // ──── 相对时间 ────
@@ -205,53 +204,50 @@ function renderFeedCards(records) {
   });
 }
 
-// ──── 滚动哨兵 ────
-function setupSentinel() {
-  if (observer) observer.disconnect();
-  observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting && hasMore && !loadingMore) {
-        loadMoreFeed();
-      }
-    });
-  }, { rootMargin: '200px' });
-
-  if (feedSentinel) observer.observe(feedSentinel);
-}
-
 // ──── 加载更多 ────
 async function loadMoreFeed() {
   if (loadingMore || !hasMore) return;
   loadingMore = true;
-  feedSentinel.style.display = 'block';
   feedSentinel.textContent = '加载中...';
-  feedSentinel.style.color = '';
+  feedSentinel.style.cursor = '';
 
   const { fetchPublicFeed } = await import('./api.js');
   const rows = await fetchPublicFeed(currentPage + 1, PAGE_SIZE);
 
   if (!rows || rows.length === 0) {
     hasMore = false;
-    feedSentinel.textContent = '— 没有更多了 —';
-    feedSentinel.style.color = 'var(--text-muted)';
+    finishSentinel();
     loadingMore = false;
     return;
   }
 
   currentPage++;
   renderFeedCards(rows);
+  feedSentinel.parentNode.appendChild(feedSentinel);
   loadingMore = false;
 
   if (rows.length < PAGE_SIZE) {
     hasMore = false;
-    feedSentinel.textContent = '— 没有更多了 —';
-    feedSentinel.style.color = 'var(--text-muted)';
+    finishSentinel();
   }
+}
+
+function showSentinelBtn() {
+  feedSentinel.textContent = '加载更多动态 ↓';
+  feedSentinel.style.color = '';
+  feedSentinel.style.cursor = 'pointer';
+  feedSentinel.style.display = 'block';
+}
+
+function finishSentinel() {
+  feedSentinel.textContent = '— 没有更多了 —';
+  feedSentinel.style.color = 'var(--text-muted)';
+  feedSentinel.style.cursor = '';
+  feedSentinel.style.display = 'block';
 }
 
 // ──── 公开入口 ────
 export async function loadFeed() {
-  if (observer) { observer.disconnect(); observer = null; }
   feedList.innerHTML = '';
   feedEmpty.style.display = 'none';
   feedLoading.style.display = 'block';
@@ -273,15 +269,15 @@ export async function loadFeed() {
 
   currentPage = 1;
   renderFeedCards(rows);
+  feedSentinel.parentNode.appendChild(feedSentinel);
 
   if (rows.length < PAGE_SIZE) {
     hasMore = false;
-    if (feedSentinel) {
-      feedSentinel.textContent = '— 没有更多了 —';
-      feedSentinel.style.color = 'var(--text-muted)';
-      feedSentinel.style.display = 'block';
-    }
+    finishSentinel();
   } else {
-    setupSentinel();
+    showSentinelBtn();
   }
 }
+
+// 哨兵点击加载
+feedSentinel.addEventListener('click', () => loadMoreFeed());
